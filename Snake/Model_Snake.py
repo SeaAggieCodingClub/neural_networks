@@ -14,7 +14,7 @@ green = (0, 255, 0)
 blue = (50, 153, 213)
 
 # Set screen dimensions
-width = 600
+width = 800
 height = 400
 
 # Create a display surface

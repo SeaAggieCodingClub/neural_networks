@@ -17,11 +17,3 @@ pygame.display.set_caption('Snake')
 clock = pygame.time.Clock()
 
 #other functions here
-
-
-
-
-def __main__():
-    #Insert main functions
-    pass
-
