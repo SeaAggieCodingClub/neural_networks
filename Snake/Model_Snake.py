@@ -2,7 +2,7 @@ import pygame
 import time
 import random
 
-# Initialize Pygame
+# Initialize Pygame uygfueg
 pygame.init()
 
 # Define colors
