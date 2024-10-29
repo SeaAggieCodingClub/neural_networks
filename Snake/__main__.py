@@ -1,6 +1,7 @@
-import pygame
+import pygame as py # make typing easier 
 import time
 import random
+from sys import exit 
 
 
 
@@ -8,9 +9,16 @@ import random
 width = 800
 height = 650
 
-screen = pygame.display.set_mode((width, height))
-pygame.display.set_caption('Snake')
+screen = py.display.set_mode((width, height))
+py.display.set_caption('Snake')
 
 # Set clock speed
-clock = pygame.time.Clock()
+clock = py.time.Clock()
 
+while True:
+    for event in py.event.get():
+        if event.type == py.QUIT:
+            py.quit()
+            exit()
+    py.display.update
+    clock.tick(60)
