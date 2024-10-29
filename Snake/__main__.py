@@ -57,7 +57,7 @@ def play():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                sys.exit()
+                exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 play_button.check_for_input(pygame.mouse.get_pos())
 
