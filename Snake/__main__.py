@@ -3,6 +3,7 @@ import time
 import random
 from sys import exit
 
+
 pygame.init()
 
 cell_number = 40
