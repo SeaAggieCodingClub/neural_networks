@@ -1,2 +1,2 @@
-# neural_links_gage
+# neural Networks
 
