@@ -16,7 +16,7 @@ clock = pygame.time.Clock()
 main_font = pygame.font.SysFont("Arial", 30)
 
 snake_speed = 20
-snake_head = pygame.image.load('neural_links_gage/Snake/snake head.png').convert()
+snake_head = pygame.image.load('Snake/snake head.png').convert()
 green = (0, 255, 0)
 
 #def movement_snake(snake_block, snake_list):
@@ -54,8 +54,23 @@ button_surface = pygame.transform.scale(button_surface, (300, 100))
 play_button = Button(button_surface, 400, 300, "Play")
 
 # Main menu screen
-# def main_menu():
-#     while True:
+def main_menu():
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                play_button.check_for_input(pygame.mouse.get_pos())
+
+        pygame.display.update()
+        screen.fill("white")
+
+        play_button.update()
+        play_button.change_color(pygame.mouse.get_pos())
+
+        clock.tick(60)
+
 
 
 # Play screen
@@ -66,14 +81,11 @@ def play():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                play_button.check_for_input(pygame.mouse.get_pos())
 
         # Draw all elements
         pygame.display.update()
         screen.fill((172, 206, 96))
-        play_button.update()
-        play_button.change_color(pygame.mouse.get_pos())
+        
 
         # Frame rate
         clock.tick(60)
