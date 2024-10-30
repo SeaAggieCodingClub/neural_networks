@@ -15,6 +15,14 @@ pygame.display.set_caption("Snake")
 clock = pygame.time.Clock()
 main_font = pygame.font.SysFont("Arial", 30)
 
+snake_speed = 20
+snake_head = pygame.image.load('neural_links_gage/Snake/snake head.png').convert()
+green = (0, 255, 0)
+
+#def movement_snake(snake_block, snake_list):
+#    for x in snake_list:
+#        pygame.draw.rect(screen, green, [x[0], x[1], snake_block, snake_block])
+
 class Button():
     def __init__(self, image, x_pos, y_pos, text_input):
         self.image = image
