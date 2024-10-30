@@ -40,7 +40,7 @@ class Button():
             self.text = main_font.render(self.text_input, True, "white")
 
 # Button variables
-button_surface = pygame.image.load("basic_button.png")
+button_surface = pygame.image.load("Snake/basic_button.png").convert()
 button_surface = pygame.transform.scale(button_surface, (300, 100))
 
 play_button = Button(button_surface, 400, 300, "Play")
