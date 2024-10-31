@@ -2,9 +2,7 @@ import pygame
 import time
 import os
 import random
-
-
-# :)
+import Ghosts_Pacman as Ghosts
 
 pygame.init()
 
@@ -30,11 +28,22 @@ height = 650
 screen = pygame.display.set_mode((width, height), pygame.NOFRAME)
 pygame.display.set_caption('Snake')
 
+# Images
 background = pygame.image.load("Pacman/images/background.png")
-
 dot_ = pygame.image.load("Pacman/images/dot.png")
-#wall = pygame.image.load("Pacman/images/wall2.png")
+#wall = pygame.image.load("Pacman/images/wall.png")
+images = {
+    'r':"Pacman/images/ghost_red.png",
+    'p':"Pacman/images/ghost_pink.png",
+    'b':"Pacman/images/ghost_blue.png",
+    'o':"Pacman/images/ghost_orange.png",
+    "pacman":"Pacman/images/pacman.png"
+}
 
+# Convert image urls to pygame objects
+for k, image in images.items():
+    img = pygame.image.load(image) # Load the image
+    images[k] = pygame.transform.scale(img, (35, 35)) # Scale the image and reference it back to the key
 
 # Set clock speed
 clock = pygame.time.Clock()
@@ -103,45 +112,92 @@ def menu():
     
     pygame.draw.rect(screen, blue, outside_border, border_radius=15)
     pygame.draw.rect(screen, black, inside_border, border_radius=15)
-    screen.blit(background,(250,5))
+    screen.blit(background,(250, 5))
     
 
 
 def find_cordinates(x,y):
-      px = (18*x) + 250
-      py = (18*y)+ -20
-      return px,py
+    px = (18*x) + 250
+    py = (18*y)+ -20
+    return px,py
 
 
 def run_graph(level):
-      for key in level:
-            x,y = key
-            
-            if key == (x,y):
-                px,py = find_cordinates(key[0],key[1])
-                if level[(x,y)] == 'dot_':
-                    screen.blit(dot_,(px,py))
-                # if level[(x,y)] == 'wall':
-                #     screen.blit(wall,(px,py))
+    for key in level:
+        x,y = key
+        
+        if key == (x,y):
+            px,py = find_cordinates(key[0],key[1])
+            if level[(x,y)] == 'dot_':
+                screen.blit(dot_,(px,py))
+            # if level[(x,y)] == 'wall':
+            #     screen.blit(wall,(px,py))
 
+def display(image, pos):
+    # Offset values from the edge of the screen
+    offset_x = 55
+    offset_y = 60
+    
+    # Set x, y values. Converting from tile size to pixels, and centering the position of the image 
+    image_pos_x = 800 - (pos.x * 18 + offset_x) - image.get_width() / 2
+    image_pos_y = pos.y * 18 + offset_y - image.get_height() / 2
+    screen.blit(image, (image_pos_x, image_pos_y)) # Display to screen
 
 def __main__():
+    # Begin
+    pacman = Ghosts.Ghost('o', 15, 27, 's') # CHANGE FROM GHOST CLASS TO PACMAN CLASS
+    ghosts = [
+        Ghosts.Ghost('r', 1, 1, 's'),
+        Ghosts.Ghost('p', 3, 1, 'w'),
+        Ghosts.Ghost('b', 5, 1, 'w'),
+        Ghosts.Ghost('o', 8, 1, 'w')
+    ]
+    
+    dir = ''
+    phase = 'c'#'f'
+    for ghost in ghosts:
+        ghost.target = pacman.pos # Update target
+    
+    # Loop
     running = True
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-
+        
         # Draw menu and check for escape
         menu()
         check_escape()
         run_graph(grid)
-
-        # Update the display
+        
+        # Update ghost data
+        Ghosts.update_ghosts(ghosts, pacman, grid, Ghosts.decision_tiles, phase)
+        
+        # Update display
+        for ghost in ghosts:
+            display(images[ghost.id], ghost.pos)
+        display(images["pacman"], pacman.pos)
         pygame.display.flip()
-
+        
         # Cap the frame rate
-        clock.tick(30)  # Adjust as necessary for smoothness
+        clock.tick(60)  # Adjust as necessary for smoothness
+        
+        # Direction controls
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_w]:
+            dir = 'w'
+        elif keys[pygame.K_a]:
+            dir = 'a'
+        elif keys[pygame.K_s]:
+            dir = 's'
+        elif keys[pygame.K_d]:
+            dir = 'd'
+        else:
+            continue
+        
+        # Update pacman direction
+        pacman.dir = dir
+        Ghosts.move(pacman, .3)
 
     pygame.quit()
 
