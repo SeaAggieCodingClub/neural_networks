@@ -71,8 +71,9 @@ class Ghost:
         self.scatter_target = scatter_targets[id]
     
     def turn(self, direction): # Should not turn completely around
+        if self.dir != direction:
+            self.pos = self.pos.tile() # Center the position
         self.dir = direction
-        self.pos = self.pos.tile() # Center the position
     
     # If the current position matches a decision tile, only run once per decision tile
     def is_on_decision_tile(self, decision_tiles):
@@ -247,7 +248,7 @@ def update_ghosts(ghosts, pacman, grid, decision_tiles, phase):
         
         # Check if there is a wall 1 tile ahead of the ghost
         copy_ghost = copy.deepcopy(ghost) # Make a copy
-        move(copy_ghost, 0.4) # Move the copy 1 tile forward
+        move(copy_ghost, 0.5) # Move the copy 1 tile forward
         pos = copy_ghost.pos.tile() # Store the tile pos
         #if (pos.x, i for i in len(grid)) in grid:
         #print("POS: ", pos.x, pos.y, copy_ghost.dir)
