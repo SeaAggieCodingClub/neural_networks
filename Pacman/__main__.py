@@ -20,7 +20,6 @@ top_right_y = 0
 # Set environment variable for window position
 os.environ['SDL_VIDEO_WINDOW_POS'] = f"{top_right_x},{top_right_y}"
 
-
 # Do not change this so they will be consistent between games and able to keep room for the Neural Network window
 width = 800
 height = 650
@@ -145,16 +144,16 @@ def display(image, pos):
 
 def __main__():
     # Begin
-    pacman = Ghosts.Ghost('o', 15, 27, 's') # CHANGE FROM GHOST CLASS TO PACMAN CLASS
+    pacman = Ghosts.Ghost('o') # CHANGE FROM GHOST CLASS TO PACMAN CLASS
     ghosts = [
-        Ghosts.Ghost('r', 1, 1, 's'),
-        Ghosts.Ghost('p', 3, 1, 'w'),
-        Ghosts.Ghost('b', 5, 1, 'w'),
-        Ghosts.Ghost('o', 8, 1, 'w')
+        Ghosts.Ghost('r'),
+        Ghosts.Ghost('p'),
+        Ghosts.Ghost('b'),
+        Ghosts.Ghost('o')
     ]
     
     dir = ''
-    phase = 'c'#'f'
+    phase = 'c'
     for ghost in ghosts:
         ghost.target = pacman.pos # Update target
     

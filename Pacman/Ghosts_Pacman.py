@@ -1,9 +1,10 @@
-import math
+from Position import *
 import copy
 import random
+import math
 import pygame
 
-# Search for the x then the y coords
+# Tiles in which there is an intersection
 decision_tiles = {
     1:[5],
     3:[26],
@@ -17,41 +18,49 @@ decision_tiles = {
     27:[5]
 }
 
-starting_positions = []
+# Decision tiles where there is an extra movement restriction
+special_tiles = {
+    12:[11, 23],
+    15:[11, 23]
+}
 
-# Phases: Chase ('c'), Scatter ('s'), Frightened ('f')
-# Ghosts: Red ('r'), Pink ('p'), Blue ('b'), Orange ('o')
-# Directions: 'w', 'a', 's', 'd'
+# Tunnels on either side for the characters to traverse, x pos
+warp_tunnels = {
+    'right':-2,
+    'left':29
+}
 
-class Position:
-    x = 0
-    y = 0
-    
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-    
-    # Converts the floating position to the coordinates of the center of the tile 
-    def tile(self):
-        x = round(self.x)
-        y = round(self.y)
-        return Position(x, y)
-    
-    # Adds this position with another given position
-    def add(self, pos):
-        x = self.pos.x + pos.x
-        y = self.pos.x + pos.x
-        return Position(x, y)
-    
-    def distance(self, pos):
-        return math.sqrt((self.x - pos.x) ** 2 + (self.y - pos.y) ** 2 )
+# Positions where each ghost starts
+starting_positions = {
+    # 'r':Position(13.50, 12),
+    # 'p':Position(12.25, 14),
+    # 'b':Position(13.50, 14),
+    # 'o':Position(14.75, 14)
+    'r':Position(1, 1),
+    'p':Position(10, 1),
+    'b':Position(16, 1),
+    'o':Position(26, 1)
+}
 
+# directions where each ghost starts
+starting_directions = {
+    'r':'a',
+    'p':'a',
+    'b':'w',
+    'o':'d'
+}
+
+# Targets for each ghost in scatter mode
 scatter_targets = {
     'r':Position(0, 0),
     'p':Position(27, 0),
     'b':Position(0, 29),
     'o':Position(27, 29)
 }
+
+# Phases: Chase ('c'), Scatter ('s'), Frightened ('f')
+# Ghosts: Red ('r'), Pink ('p'), Blue ('b'), Orange ('o')
+# Directions: 'w', 'a', 's', 'd'
 
 class Ghost:
     pos = None
@@ -63,10 +72,10 @@ class Ghost:
     is_in_house = True
     was_on_decision_tile = False
     
-    def __init__(self, id, x, y, direction):
+    def __init__(self, id):
         self.id = id
-        self.pos = Position(x, y)
-        self.dir = direction
+        self.pos = starting_positions[id]
+        self.dir = starting_directions[id]
         self.target = Position(0, 0)
         self.scatter_target = scatter_targets[id]
     
@@ -93,6 +102,13 @@ class Ghost:
             to_return = False
         return to_return
     
+    # If the current position is on a special tile
+    def is_on_special(self, special_tiles):
+        return any(
+            x == round(self.pos.x) and round(self.pos.y) in y_list
+            for x, y_list in special_tiles.items()
+        )
+    
     def set_target(self, x, y):
         self.target.x = x
         self.target.y = y
@@ -102,7 +118,7 @@ class Ghost:
         return math.sqrt((self.target.x - pos.x) ** 2 + (self.target.y - pos.y) ** 2)
     
     # Returns (as Position, direction) the possible tile choices that neighbor the decision tile specified
-    def get_choices(self, grid):
+    def get_choices(self, grid, special):
         choices = []
         pos = self.pos.tile()
         
@@ -114,7 +130,7 @@ class Ghost:
             Position(pos.x, pos.y + 1), 
             Position(pos.x - 1, pos.y)
         ]
-
+        
         # Find the direction opposite of ghost direction to note the invalid choice
         match self.dir:
             case 'w':
@@ -125,19 +141,22 @@ class Ghost:
                 invalid_dir = 'w'
             case 'd':
                 invalid_dir = 'a'
-
+        
         # For each adjoint tile in the cardinal directions
+        if pos.x < 0 or pos.x > 27: # If grid indices are out of range
+            return choices # Return as empty list
         for index, position in enumerate(positions):
             if (grid[position.x, position.y + 4] != 'wall' # If the tile is available
-                and directions[index] != invalid_dir): # If the position is not on the square the ghost just came from
+                and directions[index] != invalid_dir # If the position is not on the square the ghost just came from
+                and not (directions[index] == 'w' and special)): # If the choice is to move w on a special tile, do not add
                 choices += [(position, directions[index])] # Add the position and direction to the list of choices, store as tuple
                 #print([(position.x, position.y), directions[index]])
         return choices
     
     # Gets the optimal direction to turn while on a decision tile
-    def get_turn(self, grid, phase): #   [([], 'a')]#    
-        choices = self.get_choices(grid) # Get the list of choices containing tile positions and directions from the decision tile
-        #print(choices)
+    def get_turn(self, grid, phase, special): #   [([], 'a')]
+        choices = self.get_choices(grid, special) # Get the list of choices containing tile positions and directions from the decision tile
+        
         if len(choices) == 1:
             return choices[0][1] # Return the direction of the first choice
         
@@ -231,18 +250,16 @@ def update_ghosts(ghosts, pacman, grid, decision_tiles, phase):
     # Run updates: decision tile check, wall check, movement
     for ghost in ghosts:
         # Update for decision tiles
-        
+        special = ghost.is_on_special(special_tiles)
         if ghost.is_on_decision_tile(decision_tiles): # If not in frightened mode, and on a decision tile
-            # Update the target tile
-            #print("on tile")
-            
-            if phase == 's' : # If the phase is on scatter mode
+            # Update the target tile           
+            if phase == 's': # If the phase is on scatter mode
                 ghost.target = ghost.scatter_target # Set the target to its respective corner
             else: # If on chase, set the respective target
                 set_target(ghost.id, ghosts, pacman, phase) # Update the target
             
             # Turn to the chosen direction
-            dir = ghost.get_turn(grid, phase)
+            dir = ghost.get_turn(grid, phase, special)
             ghost.turn(dir)
         
         
@@ -254,10 +271,13 @@ def update_ghosts(ghosts, pacman, grid, decision_tiles, phase):
         #print("POS: ", pos.x, pos.y, copy_ghost.dir)
         #print("TILE?: ", grid[pos.x, pos.y + 4])
             #continue
-        if grid[pos.x, pos.y + 4] == 'wall': # Check if pos is a wall
-            #print("TURN")
+        if pos.x < warp_tunnels['right']: # If grid indices are out of range to the right
+            ghost.pos.x = warp_tunnels['left'] # Teleport to other side
+        elif pos.x > warp_tunnels['left']:  # If grid indices are out of range to the left
+            ghost.pos.x = warp_tunnels['right'] # Teleport to other side
+        elif pos.x >= 0 and pos.x <= 27 and grid[pos.x, pos.y + 4] == 'wall': # Check if grid indices are in range, and pos is a wall
             # Turn the ghost
-            dir = ghost.get_turn(grid, phase)
+            dir = ghost.get_turn(grid, phase, special)
             ghost.turn(dir)
         
         # Move according to its speed and direction
