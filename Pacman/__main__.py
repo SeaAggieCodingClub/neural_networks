@@ -126,7 +126,7 @@ def run_graph(level):
         x,y = key
         
         if key == (x,y):
-            px,py = find_cordinates(key[0],key[1])
+            px,py = find_cordinates(key[0],key[1] + 4) # Add 4 tiles for top offset
             if level[(x,y)] == 'dot_':
                 screen.blit(dot_,(px,py))
             # if level[(x,y)] == 'wall':

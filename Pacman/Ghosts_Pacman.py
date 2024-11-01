@@ -268,6 +268,7 @@ def update_ghosts(ghosts, pacman, grid, decision_tiles, phase):
         move(copy_ghost, 0.5) # Move the copy 1 tile forward
         pos = copy_ghost.pos.tile() # Store the tile pos
         
+        # Check for position in warp tunnels, then check for walls
         if pos.x < warp_tunnels['right']: # If grid indices are out of range to the right
             ghost.pos.x = warp_tunnels['left'] # Teleport to other side
         elif pos.x > warp_tunnels['left']:  # If grid indices are out of range to the left
