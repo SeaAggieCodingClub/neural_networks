@@ -245,6 +245,13 @@ def switch_phase(ghosts, phase, prev_phase):
             for ghost in ghosts:
                 ghost.speed -= 0.05
 
+def check_warp_tunnels(warp_tunnels, character):
+    pos = character.pos
+    if pos.x < warp_tunnels['right']: # If grid indices are out of range to the right
+            character.pos.x = warp_tunnels['left'] # Teleport to other side
+    elif pos.x > warp_tunnels['left']:  # If grid indices are out of range to the left
+        character.pos.x = warp_tunnels['right'] # Teleport to other side
+
 # Updates everything about the ghosts' data
 def update_ghosts(ghosts, pacman, grid, decision_tiles, phase):    
     # Run updates: decision tile check, wall check, movement
@@ -269,14 +276,12 @@ def update_ghosts(ghosts, pacman, grid, decision_tiles, phase):
         pos = copy_ghost.pos.tile() # Store the tile pos
         
         # Check for position in warp tunnels, then check for walls
-        if pos.x < warp_tunnels['right']: # If grid indices are out of range to the right
-            ghost.pos.x = warp_tunnels['left'] # Teleport to other side
-        elif pos.x > warp_tunnels['left']:  # If grid indices are out of range to the left
-            ghost.pos.x = warp_tunnels['right'] # Teleport to other side
-        elif pos.x >= 0 and pos.x <= 27 and grid[pos.x, pos.y] == 'wall': # Check if grid indices are in range, and pos is a wall
-            # Turn the ghost
-            dir = ghost.get_turn(grid, phase, special)
-            ghost.turn(dir)
+        check_warp_tunnels(warp_tunnels, ghost)
+        if pos.x >= 0 and pos.x <= 27: # Check if grid indices are in range
+            if grid[pos.x, pos.y] == 'wall': # Check if pos is a wall
+                # Turn the ghost
+                dir = ghost.get_turn(grid, phase, special)
+                ghost.turn(dir)
         
         # Move according to its speed and direction
         move(ghost, ghost.speed)
