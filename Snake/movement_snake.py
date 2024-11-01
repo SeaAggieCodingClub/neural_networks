@@ -15,6 +15,8 @@ snake_x = 20
 snake_y = 20
 finished = False
 
+clock = pygame.time.Clock()
+
 while not finished:
     screen.fill(white)
     keys = pygame.key.get_pressed()
@@ -29,6 +31,7 @@ while not finished:
     screen.blit(snake_head, (snake_x,snake_y))
     pygame.display.flip()
     for event in pygame.event.get():
-        if event.type == pygame.QUIT():
+        if event.type == pygame.QUIT:
             finished = True
+    clock.tick(10)
 pygame.quit()
