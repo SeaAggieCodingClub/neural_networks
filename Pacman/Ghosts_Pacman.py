@@ -146,7 +146,7 @@ class Ghost:
         if pos.x < 0 or pos.x > 27: # If grid indices are out of range
             return choices # Return as empty list
         for index, position in enumerate(positions):
-            if (grid[position.x, position.y + 4] != 'wall' # If the tile is available
+            if (grid[position.x, position.y] != 'wall' # If the tile is available
                 and directions[index] != invalid_dir # If the position is not on the square the ghost just came from
                 and not (directions[index] == 'w' and special)): # If the choice is to move w on a special tile, do not add
                 choices += [(position, directions[index])] # Add the position and direction to the list of choices, store as tuple
@@ -267,15 +267,12 @@ def update_ghosts(ghosts, pacman, grid, decision_tiles, phase):
         copy_ghost = copy.deepcopy(ghost) # Make a copy
         move(copy_ghost, 0.5) # Move the copy 1 tile forward
         pos = copy_ghost.pos.tile() # Store the tile pos
-        #if (pos.x, i for i in len(grid)) in grid:
-        #print("POS: ", pos.x, pos.y, copy_ghost.dir)
-        #print("TILE?: ", grid[pos.x, pos.y + 4])
-            #continue
+        
         if pos.x < warp_tunnels['right']: # If grid indices are out of range to the right
             ghost.pos.x = warp_tunnels['left'] # Teleport to other side
         elif pos.x > warp_tunnels['left']:  # If grid indices are out of range to the left
             ghost.pos.x = warp_tunnels['right'] # Teleport to other side
-        elif pos.x >= 0 and pos.x <= 27 and grid[pos.x, pos.y + 4] == 'wall': # Check if grid indices are in range, and pos is a wall
+        elif pos.x >= 0 and pos.x <= 27 and grid[pos.x, pos.y] == 'wall': # Check if grid indices are in range, and pos is a wall
             # Turn the ghost
             dir = ghost.get_turn(grid, phase, special)
             ghost.turn(dir)
