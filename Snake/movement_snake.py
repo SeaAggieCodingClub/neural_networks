@@ -16,18 +16,27 @@ snake_y = 20
 finished = False
 
 clock = pygame.time.Clock()
+direction_x = 0
+direction_y = 0
 
 while not finished:
     screen.fill(white)
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_UP]:
-        snake_y -= 1
-    if keys[pygame.K_DOWN]:
-            snake_y += 1
-    if keys[pygame.K_LEFT]:
-            snake_x -= 1
-    if keys[pygame.K_RIGHT]:
-         snake_x += 1
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            finished = True
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                direction_x, direction_y = 0, -snake_speed
+            elif event.key == pygame.K_UP:
+                direction_x, direction_y = 0, -snake_speed
+            elif event.key == pygame.K_UP:
+                direction_x, direction_y = -snake_speed, 0
+            elif event.key == pygame.K_UP:
+                direction_x, direction_y = snake_speed, 0
+
+    snake_x += direction_x
+    snake_y += direction_y
     screen.blit(snake_head, (snake_x,snake_y))
     pygame.display.flip()
     for event in pygame.event.get():
