@@ -2,7 +2,8 @@ import pygame
 import time
 import os
 import random
-import Ghosts_Pacman as Ghosts
+import Ghosts
+from Position import *
 
 pygame.init()
 
@@ -39,10 +40,12 @@ images = {
     "pacman":"Pacman/images/pacman.png"
 }
 
-# Convert image urls to pygame objects
-for k, image in images.items():
-    img = pygame.image.load(image) # Load the image
-    images[k] = pygame.transform.scale(img, (35, 35)) # Scale the image and reference it back to the key
+targets = []
+for _ in range(4):
+    img = pygame.image.load("Pacman/images/target.png") # Load the image
+    targets += [pygame.transform.scale(img, (35, 35))] # Scale the image and reference it back to the key
+
+
 
 # Set clock speed
 clock = pygame.time.Clock()
@@ -105,7 +108,6 @@ def check_escape():
         pygame.quit()
         exit()
 
-
 def menu():
     screen.fill((0, 0, 0))  # Clear the screen with a black background
     
@@ -113,13 +115,10 @@ def menu():
     pygame.draw.rect(screen, black, inside_border, border_radius=15)
     screen.blit(background,(250, 5))
     
-
-
 def find_cordinates(x,y):
     px = (18*x) + 250
     py = (18*y)+ -20
     return px,py
-
 
 def run_graph(level):
     for key in level:
@@ -142,18 +141,38 @@ def display(image, pos):
     image_pos_y = pos.y * 18 + offset_y - image.get_height() / 2
     screen.blit(image, (image_pos_x, image_pos_y)) # Display to screen
 
+# Returns the number of pellets on the board
+def get_pellets(grid):
+    sum = 0
+    for i in grid.values(): # For each value
+        if i == 'dot_': # If pellet
+            sum += 1 # Add to sum
+    return sum
+
 def __main__():
     # Begin
-    pacman = Ghosts.Ghost('o') # CHANGE FROM GHOST CLASS TO PACMAN CLASS
-    ghosts = [
-        Ghosts.Ghost('r'),
-        Ghosts.Ghost('p'),
-        Ghosts.Ghost('b'),
-        Ghosts.Ghost('o')
+    fps = 60 # Frames per second
+    pacman_speed = 8.0 / fps # Tiles per second / Frames per second = Tiles per frame
+    ghosts_speed = [
+        pacman_speed * 0.80, # 80 % - Level 1
+        pacman_speed * .90,  # 90 % - Levels 2-4
+        pacman_speed         # 100% - Levels 5+
     ]
     
-    dir = ''
+    # Character objects
+    pacman = Ghosts.Ghost('o', pacman_speed, "") # CHANGE FROM GHOST CLASS TO PACMAN CLASS
+    pacman.pos = Position(21, 26)
+    ghosts = [
+        Ghosts.Ghost('r', ghosts_speed[0], ""),
+        Ghosts.Ghost('p', ghosts_speed[0], ""),
+        Ghosts.Ghost('b', ghosts_speed[0], ""),
+        Ghosts.Ghost('o', ghosts_speed[0], "")
+    ]
+    
+    # Initialize other variables
+    pacman.dir = 'a' # Initial pacman dir
     phase = 'c'
+    pellets = get_pellets(grid)
     for ghost in ghosts:
         ghost.target = pacman.pos # Update target
     
@@ -170,33 +189,39 @@ def __main__():
         run_graph(grid)
         
         # Update ghost data
-        Ghosts.update_ghosts(ghosts, pacman, grid, Ghosts.decision_tiles, phase)
+        Ghosts.update_ghosts(ghosts, pacman, grid, phase, fps, pellets)
         
         # Update display
         for ghost in ghosts:
-            display(images[ghost.id], ghost.pos)
-        display(images["pacman"], pacman.pos)
+            display(Ghosts.images["body"][ghost.id], ghost.pos)
+            #display(images["eyes"], ghost.pos)
+        display(Ghosts.images["body"]["pacman"], pacman.pos)
+        
+        # Just for testing the ghost targets
+        # for i in range(4):
+        #     display(targets[i], ghosts[i].target) # Display the target for each ghost
         pygame.display.flip()
         
+        
+        
         # Cap the frame rate
-        clock.tick(60)  # Adjust as necessary for smoothness
+        clock.tick(fps)  # Adjust as necessary for smoothness
         
         # Direction controls
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w]:
-            dir = 'w'
+            pacman.dir = 'w'
         elif keys[pygame.K_a]:
-            dir = 'a'
+            pacman.dir = 'a'
         elif keys[pygame.K_s]:
-            dir = 's'
+            pacman.dir = 's'
         elif keys[pygame.K_d]:
-            dir = 'd'
+            pacman.dir = 'd'
         else:
             continue
         
         # Update pacman direction
-        pacman.dir = dir
-        Ghosts.move(pacman, .3)
+        pacman.move(pacman.speed)
         Ghosts.check_warp_tunnels(Ghosts.warp_tunnels, pacman)
 
     pygame.quit()

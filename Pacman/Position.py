@@ -22,3 +22,6 @@ class Position:
     
     def distance(self, pos):
         return math.sqrt((self.x - pos.x) ** 2 + (self.y - pos.y) ** 2 )
+    
+    def equals(self, pos):
+        return self.x == pos.x and self.y == pos.y
