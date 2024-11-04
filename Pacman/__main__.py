@@ -3,10 +3,10 @@ import time
 import os
 import random
 import Ghosts
+import Pacman
 from Position import *
 
 pygame.init()
-
 
 
 # Get the screen resolution
@@ -39,6 +39,9 @@ images = {
     'o':"Pacman/images/ghost_orange.png",
     "pacman":"Pacman/images/pacman.png"
 }
+
+pac = pygame.image.load("Pacman/images/pacman.png")
+pacu = pygame.transform.scale(pac, (45,45))
 
 targets = []
 for _ in range(4):
@@ -210,7 +213,7 @@ def __main__():
     ]
     
     # Character objects
-    pacman = Ghosts.Ghost('o', pacman_speed, "") # CHANGE FROM GHOST CLASS TO PACMAN CLASS
+    pacman = Pacman.Pacman(pacman_speed) # CHANGE FROM GHOST CLASS TO PACMAN CLASS
     pacman.pos = Position(21, 26)
     ghosts = [
         Ghosts.Ghost('r', ghosts_speed[0], ""),
@@ -245,7 +248,7 @@ def __main__():
         # Phase timer
         if phase != 'f': # Pause timer if in frightened mode
             seconds += 1 / fps # Increment timer
-        print(int(seconds))
+        #print(int(seconds))
         prev_phase = phase # Hold variable
         if phase_rotation <= 4: # Only for 4 rotations 
             if level == 1:
@@ -263,12 +266,23 @@ def __main__():
         
         # Update ghost data
         Ghosts.update_ghosts(ghosts, pacman, grid, phase, fps, seconds, phase_rotation, pellets)
-        
+    
         # Update display
         for ghost in ghosts:
             display(Ghosts.images["body"][ghost.id], ghost.pos)
             #display(images["eyes"], ghost.pos)
-        display(Ghosts.images["body"]["pacman"], pacman.pos)
+        
+        match pacman.dir:
+            case 'w':
+                display(pygame.transform.rotate(pacu,90), pacman.pos)
+            case 'a':
+                display(pygame.transform.rotate(pacu,180), pacman.pos)
+                
+            case 's':
+                display(pygame.transform.rotate(pacu,270), pacman.pos)
+            case 'd':
+                display(pacu,pacman.pos)
+
         
         # Just for testing the ghost targets
         # for i in range(4):
@@ -284,19 +298,25 @@ def __main__():
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w]:
             pacman.dir = 'w'
+            
         elif keys[pygame.K_a]:
             pacman.dir = 'a'
         elif keys[pygame.K_s]:
             pacman.dir = 's'
+           
         elif keys[pygame.K_d]:
             pacman.dir = 'd'
-        else:
-            continue
+        # else:
+        #     continue
         
+        if grid[round(pacman.pos.x),round(pacman.pos.y)] == 'dot_':
+            grid[round(pacman.pos.x),round(pacman.pos.y)] = '____'
+            
         # Update pacman direction
-        pacman.move(pacman.speed)
+        Pacman.move(pacman, grid)
+        #pacman.move(pacman.speed)
         Ghosts.check_warp_tunnels(Ghosts.warp_tunnels, pacman)
-
+        print(round(pacman.pos.x), round(pacman.pos.y), grid[round(pacman.pos.x),round(pacman.pos.y)])
     pygame.quit()
 
 

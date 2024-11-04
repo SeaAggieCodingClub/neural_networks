@@ -28,7 +28,7 @@ special_tiles = {
 # Tunnels on either side for the characters to traverse, x pos
 warp_tunnels = {
     'right':-2,
-    'left':29
+    'left':27
 }
 
 # Positions where each ghost starts
@@ -71,8 +71,8 @@ images = {
         'r':"Pacman/images/ghost_red.png",
         'p':"Pacman/images/ghost_pink.png",
         'b':"Pacman/images/ghost_blue.png",
-        'o':"Pacman/images/ghost_orange.png",
-        "pacman":"Pacman/images/pacman.png"
+        'o':"Pacman/images/ghost_orange.png"
+        #"pacman":"Pacman/images/pacman.png"
     },
     "eyes":"Pacman/images/ghost_eyes.png",
     "scared":"Pacman/images/ghost_scared.png"
