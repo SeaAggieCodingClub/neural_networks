@@ -309,8 +309,8 @@ def __main__():
         # else:
         #     continue
         
-        if grid[round(pacman.pos.x),round(pacman.pos.y)] == 'dot_':
-            grid[round(pacman.pos.x),round(pacman.pos.y)] = '____'
+        if grid[27 - round(pacman.pos.x),round(pacman.pos.y)] == 'dot_':
+            grid[27 -round(pacman.pos.x),round(pacman.pos.y)] = '____'
             
         # Update pacman direction
         Pacman.move(pacman, grid)
