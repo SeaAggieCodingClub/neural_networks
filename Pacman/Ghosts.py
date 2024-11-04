@@ -214,6 +214,18 @@ class Ghost(Character):
             self.pos = self.pos.tile() # Center the position
         self.dir = direction
     
+    def turn_around(self):
+        # Find the direction opposite of ghost direction
+        match self.dir:
+            case 'w':
+                self.dir = 's'
+            case 'a':
+                self.dir = 'd'
+            case 's':
+                self.dir = 'w'
+            case 'd':
+                self.dir = 'a'
+    
     def start(self):
         # Begin to exit the house
         self.is_active = True
@@ -290,13 +302,13 @@ def switch_phase(ghosts, phase, prev_phase):
     match phase:
         case 'c': # Chase
             for ghost in ghosts:
-                ghost.speed = 0.1
+                ghost.speed = ghost.base_speed
         case 's': # Scatter
             for ghost in ghosts:
-                ghost.speed = 0.1
+                ghost.speed = ghost.base_speed
         case 'f': # Frightened
             for ghost in ghosts:
-                ghost.speed -= 0.05
+                ghost.speed = ghost.base_speed / 2
 
 def check_warp_tunnels(warp_tunnels, character):
     pos = character.pos
@@ -354,10 +366,7 @@ def move_return_to_house(ghost, grid, phase): # UPDATE LATER
                 ghost.turn(dir)
         else: # Ghost is in warp tunnel
             # Turn around
-            if ghost.dir == 'a':
-                ghost.turn('d')
-            else:
-                ghost.turn('a')
+            ghost.turn_around()
     ghost.move(.5) # Move at higher speed
 
 
@@ -393,7 +402,7 @@ def move_normal(ghosts, ghost, pacman, grid, phase):
     ghost.move(ghost.speed)
 
 # Updates everything about the ghosts' data
-def update_ghosts(ghosts, pacman, grid, phase, fps, pellets): 
+def update_ghosts(ghosts, pacman, grid, phase, fps, seconds, phase_rotation, pellets): 
     # Specifics for each ghost
     update_personalities(ghosts, pacman, fps, pellets)
     

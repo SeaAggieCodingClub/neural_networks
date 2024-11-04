@@ -58,7 +58,49 @@ blue = (32,36,221)
 outside_border = pygame.Rect(10, 15, 200, height - 30)
 inside_border = pygame.Rect(15, 20, 190, height - 40)
 
-
+phase_lengths = [{ # Level 1
+        'c':[
+            20,
+            20,
+            20,
+            1e10 # Indefinitely
+        ],
+        's':[
+            7,
+            7,
+            5,
+            5
+        ]
+    },
+    { # Levels 2-4
+        'c':[
+            20,
+            20,
+            1033, # 17 minutes and 13 seconds
+            1e10 # Indefinitely
+        ],
+        's':[
+            7,
+            7,
+            5,
+            1/60
+        ]
+    },
+    { # Levels 5+
+        'c':[
+            20,
+            20,
+            1037, # 17 minutes and 17 seconds
+            1e10 # Indefinitely
+        ],
+        's':[
+            5,
+            5,
+            5,
+            1/60
+        ]
+    }
+]
 
 
 
@@ -149,6 +191,14 @@ def get_pellets(grid):
             sum += 1 # Add to sum
     return sum
 
+def phase_switch(phase, phase_rotation):
+    if phase == 's':
+        phase = 'c'
+    elif phase == 'c':
+        phase = 's'
+        phase_rotation += 1
+    return phase, phase_rotation
+
 def __main__():
     # Begin
     fps = 60 # Frames per second
@@ -171,8 +221,12 @@ def __main__():
     
     # Initialize other variables
     pacman.dir = 'a' # Initial pacman dir
-    phase = 'c'
+    
     pellets = get_pellets(grid)
+    phase = 's' # Begin in scatter mode
+    seconds = 0
+    phase_rotation = 0
+    level = 1
     for ghost in ghosts:
         ghost.target = pacman.pos # Update target
     
@@ -188,8 +242,27 @@ def __main__():
         check_escape()
         run_graph(grid)
         
+        # Phase timer
+        if phase != 'f': # Pause timer if in frightened mode
+            seconds += 1 / fps # Increment timer
+        print(int(seconds))
+        prev_phase = phase # Hold variable
+        if phase_rotation <= 4: # Only for 4 rotations 
+            if level == 1:
+                if seconds > phase_lengths[0][phase][phase_rotation]:
+                    phase, phase_rotation = phase_switch(phase, phase_rotation)
+            elif level < 4:
+                if seconds > phase_lengths[1][phase][phase_rotation]:
+                    phase, phase_rotation = phase_switch(phase, phase_rotation)
+            else: # Levels 5+
+                if seconds > phase_lengths[2][phase][phase_rotation]:
+                    phase, phase_rotation = phase_switch(phase, phase_rotation)
+            if phase != prev_phase: # If the phase has changed
+                seconds = 0 # Reset seconds
+                Ghosts.switch_phase(ghosts, phase, prev_phase) # Update ghosts
+        
         # Update ghost data
-        Ghosts.update_ghosts(ghosts, pacman, grid, phase, fps, pellets)
+        Ghosts.update_ghosts(ghosts, pacman, grid, phase, fps, seconds, phase_rotation, pellets)
         
         # Update display
         for ghost in ghosts:
