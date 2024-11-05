@@ -1,6 +1,5 @@
 import pygame
 import time
-import random
 from sys import exit
 from button import Button
 
