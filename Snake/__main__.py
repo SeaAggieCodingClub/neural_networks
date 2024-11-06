@@ -13,10 +13,13 @@ screen = pygame.display.set_mode((cell_number * cell_size, cell_number * cell_si
 pygame.display.set_caption("Snake")
 clock = pygame.time.Clock()
 main_font = pygame.font.SysFont("Arial", 26)
+back_font = pygame.font.SysFont("Arial", 20)
 
 # Button variables
 button_surface = pygame.image.load("Snake/basic_button.png").convert()
 button_surface = pygame.transform.scale(button_surface, (235, 55))
+back_button_surface = pygame.image.load("Snake/basic_button.png").convert()
+back_button_surface = pygame.transform.scale(back_button_surface, (100, 40))
 
 # Main menu screen
 def main_menu():
@@ -51,7 +54,30 @@ def main_menu():
 
 # Options screen
 def options():
-    print("Options screen")
+    while True:
+        menu_mouse_pos = pygame.mouse.get_pos()
+
+        screen.fill("white")
+
+        setting_button = Button(button_surface, 400, 300, "Example", main_font, "white", "green")
+        back_button = Button(back_button_surface, 60, 30, "Back", back_font, "white", "green")
+
+        for button in [setting_button, back_button]:
+            button.change_color(menu_mouse_pos)
+            button.update(screen)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if setting_button.check_for_input(menu_mouse_pos):
+                    print("Setting")
+                if back_button.check_for_input(menu_mouse_pos):
+                    main_menu()
+
+        pygame.display.update()
+        clock.tick(60)
 
 
 # Play screen
