@@ -4,6 +4,7 @@ import os
 import random
 import Ghosts
 import Pacman
+import Sound
 from Position import *
 
 pygame.init()
@@ -19,14 +20,14 @@ top_right_x = screen_width - window_width - 175
 top_right_y = 0
 
 # Set environment variable for window position
-os.environ['SDL_VIDEO_WINDOW_POS'] = f"{top_right_x},{top_right_y}"
+#os.environ['SDL_VIDEO_WINDOW_POS'] = f"{top_right_x},{top_right_y}"
 
 # Do not change this so they will be consistent between games and able to keep room for the Neural Network window
 width = 800
 height = 650
 
-screen = pygame.display.set_mode((width, height), pygame.NOFRAME)
-pygame.display.set_caption('Snake')
+screen = pygame.display.set_mode((width, height))
+pygame.display.set_caption('Pacman')
 
 # Images
 background = pygame.image.load("Pacman/images/background.png")
@@ -309,14 +310,16 @@ def __main__():
         # else:
         #     continue
         
+        # Pacman Eating Dots
         if grid[27 - round(pacman.pos.x),round(pacman.pos.y)] == 'dot_':
             grid[27 -round(pacman.pos.x),round(pacman.pos.y)] = '____'
-            
+            Sound.play_waka(True)
+        
         # Update pacman direction
         Pacman.move(pacman, grid)
         #pacman.move(pacman.speed)
         Ghosts.check_warp_tunnels(Ghosts.warp_tunnels, pacman)
-        print(round(pacman.pos.x), round(pacman.pos.y), grid[round(pacman.pos.x),round(pacman.pos.y)])
+        #print(round(pacman.pos.x), round(pacman.pos.y), grid[round(pacman.pos.x),round(pacman.pos.y)])
     pygame.quit()
 
 
