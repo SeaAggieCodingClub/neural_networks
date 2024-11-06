@@ -19,9 +19,9 @@ main_font = pygame.font.SysFont("Arial", 26)
 back_font = pygame.font.SysFont("Arial", 20)
 
 # Button variables
-button_surface = pygame.image.load("Snake/basic_button.png").convert()
+button_surface = pygame.image.load("Snake/images/basic_button.png").convert()
 button_surface = pygame.transform.scale(button_surface, (235, 55))
-back_button_surface = pygame.image.load("Snake/basic_button.png").convert()
+back_button_surface = pygame.image.load("Snake/images/basic_button.png").convert()
 back_button_surface = pygame.transform.scale(back_button_surface, (100, 40))
 
 #snake picture
