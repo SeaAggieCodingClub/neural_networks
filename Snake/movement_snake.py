@@ -12,8 +12,8 @@ screen_height = cell_number * cell_size
 screen = pygame.display.set_mode((screen_width, screen_height))
 
 snake_speed = 20
-snake_head_image = pygame.image.load('Snake/snake head.png').convert()
-snake_head_image = pygame.transform.scale(snake_head_image, (25,25))  # Resize image to 20x20 pixels more or less
+snake_head_image = pygame.image.load('Snake/snake head.png').convert_alpha()
+snake_head_image = pygame.transform.scale(snake_head_image, (40,40))  # Resize image to 20x20 pixels more or less
 snake_head = snake_head_image
 
 white = pygame.color.Color('#FFFFFF')
@@ -46,9 +46,7 @@ while not finished:
     screen.fill(white)
 
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            finished = True
-        elif event.type == pygame.KEYDOWN:
+        if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP and direction != (0, 1):  # Prevent moving back on itself
                 direction = (0, -1)
             elif event.key == pygame.K_DOWN and direction != (0, -1):
