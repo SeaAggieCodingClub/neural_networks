@@ -64,7 +64,7 @@ def main_menu():
                     options()
                 if exit_button.check_for_input(menu_mouse_pos):
                     pygame.quit()
-                    exit()
+                    sys.exit()
 
         pygame.display.update()
         clock.tick(60)
@@ -76,7 +76,11 @@ def options():
 
 # Play screen
 def play():
-    global direction, snake_body
+    global direction
+
+    snake_body = [(20, 20)]  # Initial position
+    direction = (1, 0)
+
     while True:
         screen.fill((172, 206, 96))
 
@@ -84,12 +88,11 @@ def play():
             # Checks if the window is closed then terminates the program
             if event.type == pygame.QUIT:
                 pygame.quit()
-                exit()
+                sys.exit()
             # Checks if escape key is pressed then opens the menu screen
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    main_menu()
-                    return
+                    return #return to main menu
                 elif event.key == pygame.K_UP and direction != (0, 1):  # Prevent moving back on itself
                     direction = (0, -1)
                 elif event.key == pygame.K_DOWN and direction != (0, -1):
@@ -113,7 +116,6 @@ def play():
             screen.blit(snake_head_image, segment)
             pygame.draw.rect(screen, (0, 255, 0), (*segment, cell_size, cell_size))
 
-        # Draw all elements
         pygame.display.update()
         
         # Frame rate
