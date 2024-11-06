@@ -310,13 +310,6 @@ def switch_phase(ghosts, phase, prev_phase):
             for ghost in ghosts:
                 ghost.speed = ghost.base_speed / 2
 
-def check_warp_tunnels(warp_tunnels, character):
-    pos = character.pos
-    if pos.x < warp_tunnels['right']: # If grid indices are out of range to the right
-            character.pos.x = warp_tunnels['left'] # Teleport to other side
-    elif pos.x > warp_tunnels['left']:  # If grid indices are out of range to the left
-        character.pos.x = warp_tunnels['right'] # Teleport to other side
-
 def update_personalities(ghosts, pacman, fps, pellets):
     # red ghost should speed up after x number of pellets gone, and permanently be in chase mode
     # RED
@@ -391,7 +384,7 @@ def move_normal(ghosts, ghost, pacman, grid, phase):
         pos = copy_ghost.pos.tile() # Store the tile pos
         
         # Check for position in warp tunnels, then check for walls
-        check_warp_tunnels(warp_tunnels, ghost)
+        ghost.check_warp_tunnels(warp_tunnels)
         if 0 <= pos.x <= 27: # Check if grid indices are in range
             if grid[pos.x, pos.y] == 'wall': # Check if pos is a wall
                 # Turn the ghost

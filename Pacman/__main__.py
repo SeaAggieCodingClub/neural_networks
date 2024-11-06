@@ -215,7 +215,6 @@ def __main__():
     
     # Character objects
     pacman = Pacman.Pacman(pacman_speed) # CHANGE FROM GHOST CLASS TO PACMAN CLASS
-    pacman.pos = Position(21, 26)
     ghosts = [
         Ghosts.Ghost('r', ghosts_speed[0], ""),
         Ghosts.Ghost('p', ghosts_speed[0], ""),
@@ -282,7 +281,7 @@ def __main__():
             case 's':
                 display(pygame.transform.rotate(pacu,270), pacman.pos)
             case 'd':
-                display(pacu,pacman.pos)
+                display(pacu, pacman.pos)
 
         
         # Just for testing the ghost targets
@@ -296,29 +295,29 @@ def __main__():
         clock.tick(fps)  # Adjust as necessary for smoothness
         
         # Direction controls
+        pos = pacman.pos.tile() # Centered position
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w]:
             pacman.dir = 'w'
-            
+            pacman.pos.x = pos.x # Center x position
         elif keys[pygame.K_a]:
             pacman.dir = 'a'
+            pacman.pos.y = pos.y # Center y position
         elif keys[pygame.K_s]:
             pacman.dir = 's'
-           
+            pacman.pos.x = pos.x # Center x position
         elif keys[pygame.K_d]:
             pacman.dir = 'd'
-        # else:
-        #     continue
+            pacman.pos.y = pos.y # Center y position
         
         # Pacman Eating Dots
-        if grid[27 - round(pacman.pos.x),round(pacman.pos.y)] == 'dot_':
-            grid[27 -round(pacman.pos.x),round(pacman.pos.y)] = '____'
-            Sound.play_waka(True)
+        if grid[27 - pos.x, pos.y] == 'dot_': # If position is on a dot
+            grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
+            Sound.play_waka(True) # Play sound
         
         # Update pacman direction
         Pacman.move(pacman, grid)
-        #pacman.move(pacman.speed)
-        Ghosts.check_warp_tunnels(Ghosts.warp_tunnels, pacman)
+        # check_warp_tunnels(Ghosts.warp_tunnels, pacman)
         #print(round(pacman.pos.x), round(pacman.pos.y), grid[round(pacman.pos.x),round(pacman.pos.y)])
     pygame.quit()
 

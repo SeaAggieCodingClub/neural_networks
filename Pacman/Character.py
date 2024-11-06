@@ -18,3 +18,11 @@ class Character:
                 self.pos.y += speed
             case 'd':
                 self.pos.x -= speed
+    
+    def check_warp_tunnels(self, warp_tunnels):
+        pos = self.pos
+        if pos.x < warp_tunnels['right']: # If grid indices are out of range to the right
+                self.pos.x = warp_tunnels['left'] # Teleport to other side
+        elif pos.x > warp_tunnels['left']:  # If grid indices are out of range to the left
+            self.pos.x = warp_tunnels['right'] # Teleport to other side`
+
