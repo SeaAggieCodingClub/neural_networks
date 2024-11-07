@@ -113,7 +113,7 @@ phase_lengths = [{ # Level 1
 
 grid = {
     (0 , 0): 'wall', (0 , 1): 'wall', (0 , 2): 'wall', (0 , 3): 'wall', (0 , 4): 'wall', (0 , 5): 'wall', (0 , 6): 'wall', (0 , 7): 'wall', (0 , 8): 'wall', (0 , 9): 'wall', (0 , 10): '____', (0 , 11): '____', (0 , 12): '____', (0 , 13): 'wall', (0 , 14): '____', (0 , 15): 'wall', (0 , 16): '____', (0 , 17): '____', (0 , 18): '____', (0 , 19): 'wall', (0 , 20): 'wall', (0 , 21): 'wall', (0 , 22): 'wall', (0 , 23): 'wall', (0 , 24): 'wall', (0 , 25): 'wall', (0 , 26): 'wall', (0 , 27): 'wall', (0 , 28): 'wall', (0 , 29): 'wall', (0 , 30): 'wall', 
-    (1 , 0): 'wall', (1 , 1): 'dot_', (1 , 2): 'dot_', (1 , 3): 'dot_', (1 , 4): 'dot_', (1 , 5): 'dot_', (1 , 6): 'dot_', (1 , 7): 'dot_', (1 , 8): 'dot_', (1 , 9): 'wall', (1 , 10): '____', (1 , 11): '____', (1 , 12): '____', (1 , 13): 'wall', (1 , 14): '____', (1 , 15): 'wall', (1 , 16): '____', (1 , 17): '____', (1 , 18): '____', (1 , 19): 'wall', (1 , 20): 'dot_', (1 , 21): 'dot_', (1 , 22): 'dot_', (1 , 23): 'dot_', (1 , 24): 'wall', (1 , 25): 'wall', (1 , 26): 'dot_', (1 , 27): 'dot_', (1 , 28): 'dot_', (1 , 29): 'dot_', (1 , 30): 'wall', 
+    (1 , 0): 'wall', (1 , 1): 'dot_', (1 , 2): 'dot_', (1 , 3): 'pdot', (1 , 4): 'dot_', (1 , 5): 'dot_', (1 , 6): 'dot_', (1 , 7): 'dot_', (1 , 8): 'dot_', (1 , 9): 'wall', (1 , 10): '____', (1 , 11): '____', (1 , 12): '____', (1 , 13): 'wall', (1 , 14): '____', (1 , 15): 'wall', (1 , 16): '____', (1 , 17): '____', (1 , 18): '____', (1 , 19): 'wall', (1 , 20): 'dot_', (1 , 21): 'dot_', (1 , 22): 'dot_', (1 , 23): 'pdot', (1 , 24): 'wall', (1 , 25): 'wall', (1 , 26): 'dot_', (1 , 27): 'dot_', (1 , 28): 'dot_', (1 , 29): 'dot_', (1 , 30): 'wall', 
     (2 , 0): 'wall', (2 , 1): 'dot_', (2 , 2): 'wall', (2 , 3): 'wall', (2 , 4): 'wall', (2 , 5): 'dot_', (2 , 6): 'wall', (2 , 7): 'wall', (2 , 8): 'dot_', (2 , 9): 'wall', (2 , 10): '____', (2 , 11): '____', (2 , 12): '____', (2 , 13): 'wall', (2 , 14): '____', (2 , 15): 'wall', (2 , 16): '____', (2 , 17): '____', (2 , 18): '____', (2 , 19): 'wall', (2 , 20): 'dot_', (2 , 21): 'wall', (2 , 22): 'wall', (2 , 23): 'dot_', (2 , 24): 'wall', (2 , 25): 'wall', (2 , 26): 'dot_', (2 , 27): 'wall', (2 , 28): 'wall', (2 , 29): 'dot_', (2 , 30): 'wall', 
     (3 , 0): 'wall', (3 , 1): 'dot_', (3 , 2): 'wall', (3 , 3): 'wall', (3 , 4): 'wall', (3 , 5): 'dot_', (3 , 6): 'wall', (3 , 7): 'wall', (3 , 8): 'dot_', (3 , 9): 'wall', (3 , 10): '____', (3 , 11): '____', (3 , 12): '____', (3 , 13): 'wall', (3 , 14): '____', (3 , 15): 'wall', (3 , 16): '____', (3 , 17): '____', (3 , 18): '____', (3 , 19): 'wall', (3 , 20): 'dot_', (3 , 21): 'wall', (3 , 22): 'wall', (3 , 23): 'dot_', (3 , 24): 'dot_', (3 , 25): 'dot_', (3 , 26): 'dot_', (3 , 27): 'wall', (3 , 28): 'wall', (3 , 29): 'dot_', (3 , 30): 'wall', 
     (4 , 0): 'wall', (4 , 1): 'dot_', (4 , 2): 'wall', (4 , 3): 'wall', (4 , 4): 'wall', (4 , 5): 'dot_', (4 , 6): 'wall', (4 , 7): 'wall', (4 , 8): 'dot_', (4 , 9): 'wall', (4 , 10): '____', (4 , 11): '____', (4 , 12): '____', (4 , 13): 'wall', (4 , 14): '____', (4 , 15): 'wall', (4 , 16): '____', (4 , 17): '____', (4 , 18): '____', (4 , 19): 'wall', (4 , 20): 'dot_', (4 , 21): 'wall', (4 , 22): 'wall', (4 , 23): 'wall', (4 , 24): 'wall', (4 , 25): 'wall', (4 , 26): 'dot_', (4 , 27): 'wall', (4 , 28): 'wall', (4 , 29): 'dot_', (4 , 30): 'wall', 
@@ -138,7 +138,7 @@ grid = {
     (23, 0): 'wall', (23, 1): 'dot_', (23, 2): 'wall', (23, 3): 'wall', (23, 4): 'wall', (23, 5): 'dot_', (23, 6): 'wall', (23, 7): 'wall', (23, 8): 'dot_', (23, 9): 'wall', (23, 10): '____', (23, 11): '____', (23, 12): '____', (23, 13): 'wall', (23, 14): '____', (23, 15): 'wall', (23, 16): '____', (23, 17): '____', (23, 18): '____', (23, 19): 'wall', (23, 20): 'dot_', (23, 21): 'wall', (23, 22): 'wall', (23, 23): 'wall', (23, 24): 'wall', (23, 25): 'wall', (23, 26): 'dot_', (23, 27): 'wall', (23, 28): 'wall', (23, 29): 'dot_', (23 , 30): 'wall', 
     (24, 0): 'wall', (24, 1): 'dot_', (24, 2): 'wall', (24, 3): 'wall', (24, 4): 'wall', (24, 5): 'dot_', (24, 6): 'wall', (24, 7): 'wall', (24, 8): 'dot_', (24, 9): 'wall', (24, 10): '____', (24, 11): '____', (24, 12): '____', (24, 13): 'wall', (24, 14): '____', (24, 15): 'wall', (24, 16): '____', (24, 17): '____', (24, 18): '____', (24, 19): 'wall', (24, 20): 'dot_', (24, 21): 'wall', (24, 22): 'wall', (24, 23): 'dot_', (24, 24): 'dot_', (24, 25): 'dot_', (24, 26): 'dot_', (24, 27): 'wall', (24, 28): 'wall', (24, 29): 'dot_', (24 , 30): 'wall', 
     (25, 0): 'wall', (25, 1): 'dot_', (25, 2): 'wall', (25, 3): 'wall', (25, 4): 'wall', (25, 5): 'dot_', (25, 6): 'wall', (25, 7): 'wall', (25, 8): 'dot_', (25, 9): 'wall', (25, 10): '____', (25, 11): '____', (25, 12): '____', (25, 13): 'wall', (25, 14): '____', (25, 15): 'wall', (25, 16): '____', (25, 17): '____', (25, 18): '____', (25, 19): 'wall', (25, 20): 'dot_', (25, 21): 'wall', (25, 22): 'wall', (25, 23): 'dot_', (25, 24): 'wall', (25, 25): 'wall', (25, 26): 'dot_', (25, 27): 'wall', (25, 28): 'wall', (25, 29): 'dot_', (25 , 30): 'wall', 
-    (26, 0): 'wall', (26, 1): 'dot_', (26, 2): 'dot_', (26, 3): 'dot_', (26, 4): 'dot_', (26, 5): 'dot_', (26, 6): 'dot_', (26, 7): 'dot_', (26, 8): 'dot_', (26, 9): 'wall', (26, 10): '____', (26, 11): '____', (26, 12): '____', (26, 13): 'wall', (26, 14): '____', (26, 15): 'wall', (26, 16): '____', (26, 17): '____', (26, 18): '____', (26, 19): 'wall', (26, 20): 'dot_', (26, 21): 'dot_', (26, 22): 'dot_', (26, 23): 'dot_', (26, 24): 'wall', (26, 25): 'wall', (26, 26): 'dot_', (26, 27): 'dot_', (26, 28): 'dot_', (26, 29): 'dot_', (26 , 30): 'wall', 
+    (26, 0): 'wall', (26, 1): 'dot_', (26, 2): 'dot_', (26, 3): 'pdot', (26, 4): 'dot_', (26, 5): 'dot_', (26, 6): 'dot_', (26, 7): 'dot_', (26, 8): 'dot_', (26, 9): 'wall', (26, 10): '____', (26, 11): '____', (26, 12): '____', (26, 13): 'wall', (26, 14): '____', (26, 15): 'wall', (26, 16): '____', (26, 17): '____', (26, 18): '____', (26, 19): 'wall', (26, 20): 'dot_', (26, 21): 'dot_', (26, 22): 'dot_', (26, 23): 'pdot', (26, 24): 'wall', (26, 25): 'wall', (26, 26): 'dot_', (26, 27): 'dot_', (26, 28): 'dot_', (26, 29): 'dot_', (26 , 30): 'wall', 
     (27, 0): 'wall', (27, 1): 'wall', (27, 2): 'wall', (27, 3): 'wall', (27, 4): 'wall', (27, 5): 'wall', (27, 6): 'wall', (27, 7): 'wall', (27, 8): 'wall', (27, 9): 'wall', (27, 10): '____', (27, 11): '____', (27, 12): '____', (27, 13): 'wall', (27, 14): '____', (27, 15): 'wall', (27, 16): '____', (27, 17): '____', (27, 18): '____', (27, 19): 'wall', (27, 20): 'wall', (27, 21): 'wall', (27, 22): 'wall', (27, 23): 'wall', (27, 24): 'wall', (27, 25): 'wall', (27, 26): 'wall', (27, 27): 'wall', (27, 28): 'wall', (27, 29): 'wall', (27 , 30): 'wall'
 }
 
@@ -174,6 +174,8 @@ def run_graph(level):
             px,py = find_cordinates(key[0],key[1] + 4) # Add 4 tiles for top offset
             if level[(x,y)] == 'dot_':
                 screen.blit(dot_,(px,py))
+            if level[(x,y)] == 'pdot':
+                screen.blit(dot_,(px,py))
             # if level[(x,y)] == 'wall':
             #     screen.blit(wall,(px,py))
 
@@ -195,6 +197,43 @@ def get_pellets(grid):
             sum += 1 # Add to sum
     return sum
 
+# Changes the direction of pacman from the keyboard input, if move is invalid returns the next move 
+def control_pacman(pacman, next_move, grid):
+    # Direction controls
+    # next_move = next_move_list[0] # Store as tuple for pass by reference
+    pos = pacman.pos.tile() # Centered position
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_w] or next_move == 'w':
+        if pacman.check_wall('w', grid):
+            next_move = 'w' # Set a buffer for the next move
+        else:
+            pacman.dir = 'w'
+            next_move = None
+            pacman.pos.x = pos.x # Center x position
+    if keys[pygame.K_a] or next_move == 'a':
+        if pacman.check_wall('a', grid):
+            next_move = 'a' # Set a buffer for the next move
+        else:
+            pacman.dir = 'a'
+            next_move = None
+            pacman.pos.y = pos.y # Center y position
+    if keys[pygame.K_s] or next_move == 's':
+        if pacman.check_wall('s', grid):
+            next_move = 's' # Set a buffer for the next move
+        else:
+            pacman.dir = 's'
+            next_move = None
+            pacman.pos.x = pos.x # Center x position
+    if keys[pygame.K_d] or next_move == 'd':
+        if pacman.check_wall('d', grid):
+            next_move = 'd' # Set a buffer for the next move
+        else:
+            pacman.dir = 'd'
+            next_move = None
+            pacman.pos.y = pos.y # Center y position
+    
+    return next_move
+
 def phase_switch(phase, phase_rotation):
     if phase == 's':
         phase = 'c'
@@ -202,6 +241,60 @@ def phase_switch(phase, phase_rotation):
         phase = 's'
         phase_rotation += 1
     return phase, phase_rotation
+
+def update_phase(values, ghosts, seconds, fps):
+    (phase, phase_rotation, level) = values # Store in tuple for a pass by reference
+    # Phase timer
+    if phase != 'f': # Pause timer if in frightened mode
+        seconds += 1 / fps # Increment timer
+        #print(int(seconds))
+        prev_phase = phase # Hold variable
+        if phase_rotation <= 4: # Only for 4 rotations 
+            if level == 1 and seconds > phase_lengths[0][phase][phase_rotation]:
+                phase, phase_rotation = phase_switch(phase, phase_rotation)
+            elif level < 4 and seconds > phase_lengths[1][phase][phase_rotation]:
+                    phase, phase_rotation = phase_switch(phase, phase_rotation)
+            elif seconds > phase_lengths[2][phase][phase_rotation]: # Level 5+
+                    phase, phase_rotation = phase_switch(phase, phase_rotation)
+            if phase != prev_phase: # If the phase has changed
+                seconds = 0 # Reset seconds
+                Ghosts.switch_phase(ghosts, phase, prev_phase) # Update ghosts
+
+def update_pellets(pacman, grid):
+    # Pacman Eating Dots
+    pos = pacman.pos.tile() # Centered position
+    grid_value = grid[27 - pos.x, pos.y]
+    if grid_value == 'dot_': # If position is on a dot
+        grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
+        Sound.play_waka(True) # Play sound
+    elif grid[27 - pos.x, pos.y] == 'pdot':
+        grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
+        phase = 'f' # Change phase to frightened mode
+        Sound.play_waka(True) # Play sound
+
+def display_characters(pygame, pacman, ghosts):
+    # Display ghosts
+    for ghost in ghosts:
+        display(Ghosts.images["body"][ghost.id], ghost.pos)
+        #display(images["eyes"], ghost.pos)
+    
+    # Display pacman (facing the proper direction)
+    match pacman.dir:
+        case 'w':
+            display(pygame.transform.rotate(pacu, 90), pacman.pos)
+        case 'a':
+            display(pygame.transform.rotate(pacu, 180), pacman.pos)
+        case 's':
+            display(pygame.transform.rotate(pacu, 270), pacman.pos)
+        case 'd':
+            display(pacu, pacman.pos)
+    
+    # Display ghost targets
+    # for i in range(4):
+    #     display(targets[i], ghosts[i].target) # Display the target for each ghost
+    
+    # Update pygame
+    pygame.display.flip()
 
 def __main__():
     # Begin
@@ -223,13 +316,12 @@ def __main__():
     ]
     
     # Initialize other variables
-    pacman.dir = 'a' # Initial pacman dir
-    
-    pellets = get_pellets(grid)
+    pacman.dir = 'a' # Initial pacman dir    
     phase = 's' # Begin in scatter mode
     seconds = 0
     phase_rotation = 0
     level = 1
+    next_move = None
     for ghost in ghosts:
         ghost.target = pacman.pos # Update target
     
@@ -244,82 +336,25 @@ def __main__():
         menu()
         check_escape()
         run_graph(grid)
+        clock.tick(fps) # Cap the frame rate
         
-        # Phase timer
-        if phase != 'f': # Pause timer if in frightened mode
-            seconds += 1 / fps # Increment timer
-        #print(int(seconds))
-        prev_phase = phase # Hold variable
-        if phase_rotation <= 4: # Only for 4 rotations 
-            if level == 1:
-                if seconds > phase_lengths[0][phase][phase_rotation]:
-                    phase, phase_rotation = phase_switch(phase, phase_rotation)
-            elif level < 4:
-                if seconds > phase_lengths[1][phase][phase_rotation]:
-                    phase, phase_rotation = phase_switch(phase, phase_rotation)
-            else: # Levels 5+
-                if seconds > phase_lengths[2][phase][phase_rotation]:
-                    phase, phase_rotation = phase_switch(phase, phase_rotation)
-            if phase != prev_phase: # If the phase has changed
-                seconds = 0 # Reset seconds
-                Ghosts.switch_phase(ghosts, phase, prev_phase) # Update ghosts
+        # Update board
+        update_phase((phase, phase_rotation, level), ghosts, seconds, fps)
+        update_pellets(pacman, grid)
+        pellets = get_pellets(grid)
+        if pellets == 0:
+            level += 1 # Increment level
+            print("Level Complete!")
+            break
+            # RUN NEXT LEVEL SEQUENCE
         
-        # Update ghost data
-        Ghosts.update_ghosts(ghosts, pacman, grid, phase, fps, seconds, phase_rotation, pellets)
-    
+        # Update character data
+        next_move = control_pacman(pacman, next_move, grid) # Direction controls
+        Pacman.update_pacman(pacman, grid)
+        Ghosts.update_ghosts(ghosts, pacman, grid, phase, fps, seconds, phase_rotation, pellets)        
+        
         # Update display
-        for ghost in ghosts:
-            display(Ghosts.images["body"][ghost.id], ghost.pos)
-            #display(images["eyes"], ghost.pos)
-        
-        match pacman.dir:
-            case 'w':
-                display(pygame.transform.rotate(pacu,90), pacman.pos)
-            case 'a':
-                display(pygame.transform.rotate(pacu,180), pacman.pos)
-                
-            case 's':
-                display(pygame.transform.rotate(pacu,270), pacman.pos)
-            case 'd':
-                display(pacu, pacman.pos)
-
-        
-        # Just for testing the ghost targets
-        # for i in range(4):
-        #     display(targets[i], ghosts[i].target) # Display the target for each ghost
-        pygame.display.flip()
-        
-        
-        
-        # Cap the frame rate
-        clock.tick(fps)  # Adjust as necessary for smoothness
-        
-        # Direction controls
-        pos = pacman.pos.tile() # Centered position
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_w]:
-            pacman.dir = 'w'
-            pacman.pos.x = pos.x # Center x position
-        elif keys[pygame.K_a]:
-            pacman.dir = 'a'
-            pacman.pos.y = pos.y # Center y position
-        elif keys[pygame.K_s]:
-            pacman.dir = 's'
-            pacman.pos.x = pos.x # Center x position
-        elif keys[pygame.K_d]:
-            pacman.dir = 'd'
-            pacman.pos.y = pos.y # Center y position
-        
-        # Pacman Eating Dots
-        if grid[27 - pos.x, pos.y] == 'dot_': # If position is on a dot
-            grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
-            Sound.play_waka(True) # Play sound
-        
-        # Update pacman direction
-        Pacman.move(pacman, grid)
-        # check_warp_tunnels(Ghosts.warp_tunnels, pacman)
-        #print(round(pacman.pos.x), round(pacman.pos.y), grid[round(pacman.pos.x),round(pacman.pos.y)])
+        display_characters(pygame, pacman, ghosts)
     pygame.quit()
-
 
 __main__()

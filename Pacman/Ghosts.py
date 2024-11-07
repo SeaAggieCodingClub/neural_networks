@@ -378,18 +378,11 @@ def move_normal(ghosts, ghost, pacman, grid, phase):
         dir = ghost.get_turn(grid, phase, special)
         ghost.turn(dir)
     else: # Update for wall
-        # Check if there is a wall 1 tile ahead of the ghost
-        copy_ghost = copy.deepcopy(ghost) # Make a copy
-        copy_ghost.move(0.5) # Move the copy 1 tile forward
-        pos = copy_ghost.pos.tile() # Store the tile pos
-        
         # Check for position in warp tunnels, then check for walls
         ghost.check_warp_tunnels(warp_tunnels)
-        if 0 <= pos.x <= 27: # Check if grid indices are in range
-            if grid[pos.x, pos.y] == 'wall': # Check if pos is a wall
-                # Turn the ghost
-                dir = ghost.get_turn(grid, phase, special)
-                ghost.turn(dir)
+        if ghost.check_wall(ghost.dir, grid): # Check for a wall ahead
+            dir = ghost.get_turn(grid, phase, special)
+            ghost.turn(dir)
     
     # Move according to its speed and direction
     ghost.move(ghost.speed)
