@@ -4,6 +4,7 @@ import copy
 import random
 import math
 import pygame
+import time
 
 # Tiles in which there is an intersection
 decision_tiles = {
@@ -25,25 +26,15 @@ special_tiles = {
     15:[11, 23]
 }
 
-# Tunnels on either side for the characters to traverse, x pos
-warp_tunnels = {
-    'right':-2,
-    'left':27
-}
-
 # Positions where each ghost starts
 starting_positions = {
-    #  r
-    # bpo
-    # 
-    # 'r':Position(13.50, 11),
-    # 'p':Position(13.50, 14),
-    # 'b':Position(14.75, 14),
-    # 'o':Position(12.25, 14)
-    'r':Position(1, 1),
-    'p':Position(10, 1),
-    'b':Position(16, 1),
-    'o':Position(25, 1)
+    #   r
+    # b p o
+    
+    'r':Position(13.50, 11),
+    'p':Position(13.50, 14),
+    'b':Position(15.33, 14),
+    'o':Position(11.67, 14)
 }
 
 # directions where each ghost starts
@@ -91,8 +82,6 @@ class Ghost(Character):
     target = None
     scatter_target = None
     was_on_decision_tile = False
-    is_active = True
-    is_dead = False
     
     # For pink
     blush_timer = 0
@@ -102,13 +91,15 @@ class Ghost(Character):
     in_chase = False
     
     def __init__(self, id, speed, image_eyes):
+        # print(f"{i.x} {i.y}" for i in starting_positions)
         self.id = id
-        self.pos = starting_positions[id]
+        self.pos = copy.deepcopy(starting_positions[id])
         self.dir = starting_directions[id]
         self.speed = self.base_speed = speed
         self.image_eyes = image_eyes
         self.target = Position(0, 0)
         self.scatter_target = scatter_targets[id]
+        self.is_active = id == 'r' # Only start with red active
     
     # If the current position matches a decision tile, only run once per decision tile
     def is_on_decision_tile(self, decision_tiles):
@@ -226,7 +217,15 @@ class Ghost(Character):
             case 'd':
                 self.dir = 'a'
     
-    def start(self):
+    # Check for the conditions for each ghost to leave the house
+    def try_exit(self, seconds, pellets):
+        # If the ghost satisfies its exit condition   
+        if (self.id == 'p' and int(seconds) == 8 or
+            self.id == 'b' and pellets == 200 or
+            self.id == 'o' and pellets == 160):
+            self.exit() 
+    
+    def exit(self):
         # Begin to exit the house
         self.is_active = True
         
@@ -291,7 +290,7 @@ def set_targets(id, ghosts, pacman, phase):
             set_orange_target(ghosts[3], pacman)
 
 # Controlled by timer, switches 
-def switch_phase(ghosts, phase, prev_phase):
+def update_phase_attributes(ghosts, phase, prev_phase):
     # Turn ghosts around if changing out of chase or scatter
     if prev_phase in ['c', 's']:
         for ghost in ghosts:
@@ -335,11 +334,11 @@ def update_personalities(ghosts, pacman, fps, pellets):
 
 # Moves the ghost out of the starting house
 def move_exit_house(ghost):
-    if ghost.pos.tile().x == 13.5: # If the ghost reaches the x position of the exit gate
+    if 13.4 < ghost.pos.x < 13.6: # If the ghost reaches the x position of the exit gate
         ghost.dir = 'w' # Turn upward
+        ghost.pos.x = 13.5 # Center
     ghost.move(ghost.speed) # Move regularly
 
-# Moves the ghost according to its regular path
 # Moves the ghost back to the starting house (After death)
 def move_return_to_house(ghost, grid, phase): # UPDATE LATER         
     if ghost.is_at_entrance():
@@ -362,11 +361,10 @@ def move_return_to_house(ghost, grid, phase): # UPDATE LATER
             ghost.turn_around()
     ghost.move(.5) # Move at higher speed
 
-
 # Run normal updates: decision tile check, wall check, movement
 def move_normal(ghosts, ghost, pacman, grid, phase):
     # Update for decision tiles
-    special = ghost.is_on_special(special_tiles)
+    special = ghost.id != 'r' and ghost.is_on_special(special_tiles)
     if ghost.is_on_decision_tile(decision_tiles): # If not in frightened mode, and on a decision tile
         # Update the target tile
         if phase == 's' and not ghost.in_chase: # If the phase is on scatter mode, and red is not in chase mode
@@ -379,7 +377,7 @@ def move_normal(ghosts, ghost, pacman, grid, phase):
         ghost.turn(dir)
     else: # Update for wall
         # Check for position in warp tunnels, then check for walls
-        ghost.check_warp_tunnels(warp_tunnels)
+        ghost.check_warp_tunnels()
         if ghost.check_wall(ghost.dir, grid): # Check for a wall ahead
             dir = ghost.get_turn(grid, phase, special)
             ghost.turn(dir)
@@ -394,9 +392,15 @@ def update_ghosts(ghosts, pacman, grid, phase, fps, seconds, phase_rotation, pel
     
     for ghost in ghosts:
         # Check for death
-        if ghost.pos.tile().equals(pacman.pos.tile()):# and phase == 'f': # If pacman is on the ghost and they are blue
-            ghost.kill()
-        
+        if ghost.pos.tile().equals(pacman.pos.tile()): # If pacman is on the ghost
+            if phase == 'f': # If in frightened mode
+                ghost.kill()
+                print("KILLED GHOST")
+            else:
+                pacman.kill()
+                print("KILLED PACMAN", pacman.lives)
+                time.sleep(1.5)
+                return
         if ghost.is_active:
             if ghost.is_in_house(): # If the ghost is waiting to exit the house
                 if ghost.is_dead:
@@ -406,3 +410,8 @@ def update_ghosts(ghosts, pacman, grid, phase, fps, seconds, phase_rotation, pel
                 move_return_to_house(ghost, grid, phase)
             else: # Normal movement
                 move_normal(ghosts, ghost, pacman, grid, phase)
+        else:
+            ghost.move(ghost.speed)
+            if ghost.check_wall(ghost.dir, grid):
+                ghost.turn_around()
+            ghost.try_exit(seconds, pellets)

@@ -1,5 +1,11 @@
 import copy
 
+# Tunnels on either side for the characters to traverse, x pos
+warp_tunnels = {
+    'right':-1,
+    'left':28
+}
+
 # Parent class over Pacman and Ghosts
 class Character:
     images = None
@@ -8,6 +14,8 @@ class Character:
     dir = None
     speed = None
     base_speed = None
+    is_active = True
+    is_dead = False
     
     # Adds a given magnitude to the position of the character depending on the direction
     def move(self, speed):
@@ -21,7 +29,7 @@ class Character:
             case 'd':
                 self.pos.x -= speed
     
-    def check_warp_tunnels(self, warp_tunnels):
+    def check_warp_tunnels(self):
         pos = self.pos
         if pos.x < warp_tunnels['right']: # If grid indices are out of range to the right
                 self.pos.x = warp_tunnels['left'] # Teleport to other side

@@ -6,6 +6,7 @@ import Ghosts
 import Pacman
 import Sound
 from Position import *
+import copy
 
 pygame.init()
 
@@ -32,7 +33,10 @@ pygame.display.set_caption('Pacman')
 # Images
 background = pygame.image.load("Pacman/images/background.png")
 dot_ = pygame.image.load("Pacman/images/dot.png")
+# pdot = pygame.image.load("Pacman/images/pdot.png")
+pdot = pygame.transform.scale(dot_, (40, 40))
 #wall = pygame.image.load("Pacman/images/wall.png")
+
 images = {
     'r':"Pacman/images/ghost_red.png",
     'p':"Pacman/images/ghost_pink.png",
@@ -106,11 +110,6 @@ phase_lengths = [{ # Level 1
     }
 ]
 
-
-
-#grid = {(x, y): 'dot_' for x in range(28) for y in range(36)}
-
-
 grid = {
     (0 , 0): 'wall', (0 , 1): 'wall', (0 , 2): 'wall', (0 , 3): 'wall', (0 , 4): 'wall', (0 , 5): 'wall', (0 , 6): 'wall', (0 , 7): 'wall', (0 , 8): 'wall', (0 , 9): 'wall', (0 , 10): '____', (0 , 11): '____', (0 , 12): '____', (0 , 13): 'wall', (0 , 14): '____', (0 , 15): 'wall', (0 , 16): '____', (0 , 17): '____', (0 , 18): '____', (0 , 19): 'wall', (0 , 20): 'wall', (0 , 21): 'wall', (0 , 22): 'wall', (0 , 23): 'wall', (0 , 24): 'wall', (0 , 25): 'wall', (0 , 26): 'wall', (0 , 27): 'wall', (0 , 28): 'wall', (0 , 29): 'wall', (0 , 30): 'wall', 
     (1 , 0): 'wall', (1 , 1): 'dot_', (1 , 2): 'dot_', (1 , 3): 'pdot', (1 , 4): 'dot_', (1 , 5): 'dot_', (1 , 6): 'dot_', (1 , 7): 'dot_', (1 , 8): 'dot_', (1 , 9): 'wall', (1 , 10): '____', (1 , 11): '____', (1 , 12): '____', (1 , 13): 'wall', (1 , 14): '____', (1 , 15): 'wall', (1 , 16): '____', (1 , 17): '____', (1 , 18): '____', (1 , 19): 'wall', (1 , 20): 'dot_', (1 , 21): 'dot_', (1 , 22): 'dot_', (1 , 23): 'pdot', (1 , 24): 'wall', (1 , 25): 'wall', (1 , 26): 'dot_', (1 , 27): 'dot_', (1 , 28): 'dot_', (1 , 29): 'dot_', (1 , 30): 'wall', 
@@ -142,12 +141,6 @@ grid = {
     (27, 0): 'wall', (27, 1): 'wall', (27, 2): 'wall', (27, 3): 'wall', (27, 4): 'wall', (27, 5): 'wall', (27, 6): 'wall', (27, 7): 'wall', (27, 8): 'wall', (27, 9): 'wall', (27, 10): '____', (27, 11): '____', (27, 12): '____', (27, 13): 'wall', (27, 14): '____', (27, 15): 'wall', (27, 16): '____', (27, 17): '____', (27, 18): '____', (27, 19): 'wall', (27, 20): 'wall', (27, 21): 'wall', (27, 22): 'wall', (27, 23): 'wall', (27, 24): 'wall', (27, 25): 'wall', (27, 26): 'wall', (27, 27): 'wall', (27, 28): 'wall', (27, 29): 'wall', (27 , 30): 'wall'
 }
 
-
-
-
-
-
-
 def check_escape():
     keys = pygame.key.get_pressed()
     if keys[pygame.K_ESCAPE]:
@@ -175,7 +168,8 @@ def run_graph(level):
             if level[(x,y)] == 'dot_':
                 screen.blit(dot_,(px,py))
             if level[(x,y)] == 'pdot':
-                screen.blit(dot_,(px,py))
+                screen.blit(pdot,(px - 12, py - 12))
+                
             # if level[(x,y)] == 'wall':
             #     screen.blit(wall,(px,py))
 
@@ -188,6 +182,30 @@ def display(image, pos):
     image_pos_x = 800 - (pos.x * 18 + offset_x) - image.get_width() / 2
     image_pos_y = pos.y * 18 + offset_y - image.get_height() / 2
     screen.blit(image, (image_pos_x, image_pos_y)) # Display to screen
+
+def display_characters(pygame, pacman, ghosts):
+    # Display ghosts
+    for ghost in ghosts:
+        display(Ghosts.images["body"][ghost.id], ghost.pos)
+        #display(images["eyes"], ghost.pos)
+    
+    # Display pacman (facing the proper direction)
+    match pacman.dir:
+        case 'w':
+            display(pygame.transform.rotate(pacu, 90), pacman.pos)
+        case 'a':
+            display(pygame.transform.rotate(pacu, 180), pacman.pos)
+        case 's':
+            display(pygame.transform.rotate(pacu, 270), pacman.pos)
+        case 'd':
+            display(pacu, pacman.pos)
+    
+    # Display ghost targets
+    # for i in range(4):
+    #     display(targets[i], ghosts[i].target) # Display the target for each ghost
+    
+    # Update pygame
+    pygame.display.flip()
 
 # Returns the number of pellets on the board
 def get_pellets(grid):
@@ -242,119 +260,124 @@ def phase_switch(phase, phase_rotation):
         phase_rotation += 1
     return phase, phase_rotation
 
-def update_phase(values, ghosts, seconds, fps):
-    (phase, phase_rotation, level) = values # Store in tuple for a pass by reference
-    # Phase timer
-    if phase != 'f': # Pause timer if in frightened mode
-        seconds += 1 / fps # Increment timer
-        #print(int(seconds))
-        prev_phase = phase # Hold variable
-        if phase_rotation <= 4: # Only for 4 rotations 
-            if level == 1 and seconds > phase_lengths[0][phase][phase_rotation]:
+def update_phase(values, ghosts, pacman, grid, fps):
+    (phase, phase_rotation, level, phase_seconds, scared_seconds) = values # Store in tuple for a pass by reference
+    
+    prev_phase = phase # Hold variable
+    phase = update_pellets(pacman, grid, phase) # Check pellets
+    
+    if phase == 'f': # If phase has changed
+        if phase != prev_phase:
+            print("In Frightened Phase!")
+            Ghosts.update_phase_attributes(ghosts, phase, prev_phase) # Update ghosts
+            # Change ghost images to blue
+        
+        scared_seconds += 1 / fps # Increment timer
+        if scared_seconds > 8: # CHANGE VALUE
+            prev_phase = 'f'
+            phase = 'c'
+            scared_seconds = 0
+            Ghosts.update_phase_attributes(ghosts, phase, prev_phase) # Update ghosts
+            # Change ghost images back to normal
+    elif phase_rotation <= 4: # Only for 4 rotations 
+        # Phase timer
+        phase_seconds += 1 / fps # Increment timer
+        if level == 1 and phase_seconds > phase_lengths[0][phase][phase_rotation]:
+            phase, phase_rotation = phase_switch(phase, phase_rotation)
+        elif level < 4 and phase_seconds > phase_lengths[1][phase][phase_rotation]:
                 phase, phase_rotation = phase_switch(phase, phase_rotation)
-            elif level < 4 and seconds > phase_lengths[1][phase][phase_rotation]:
-                    phase, phase_rotation = phase_switch(phase, phase_rotation)
-            elif seconds > phase_lengths[2][phase][phase_rotation]: # Level 5+
-                    phase, phase_rotation = phase_switch(phase, phase_rotation)
-            if phase != prev_phase: # If the phase has changed
-                seconds = 0 # Reset seconds
-                Ghosts.switch_phase(ghosts, phase, prev_phase) # Update ghosts
+        elif phase_seconds > phase_lengths[2][phase][phase_rotation]: # Level 5+
+                phase, phase_rotation = phase_switch(phase, phase_rotation)
+        if phase != prev_phase: # If the phase has changed
+            phase_seconds = 0 # Reset seconds
+            Ghosts.update_phase_attributes(ghosts, phase, prev_phase) # Update ghosts
+        
+        
+    #print("Phase in", phase)
+    return (phase, phase_rotation, level, phase_seconds, scared_seconds)
 
-def update_pellets(pacman, grid):
+def update_pellets(pacman, grid, phase):
     # Pacman Eating Dots
     pos = pacman.pos.tile() # Centered position
-    grid_value = grid[27 - pos.x, pos.y]
-    if grid_value == 'dot_': # If position is on a dot
-        grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
-        Sound.play_waka(True) # Play sound
-    elif grid[27 - pos.x, pos.y] == 'pdot':
-        grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
-        phase = 'f' # Change phase to frightened mode
-        Sound.play_waka(True) # Play sound
+    if 0 <= pos.x <= 27: # Check if indices are in range
+        grid_value = grid[27 - pos.x, pos.y]
+        if grid_value == 'dot_': # If position is on a dot
+            grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
+            Sound.play_waka(True) # Play sound
+        elif grid[27 - pos.x, pos.y] == 'pdot':
+            grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
+            phase = 'f' # Change phase to frightened mode
+            Sound.play_waka(True) # Play sound
+    return phase
 
-def display_characters(pygame, pacman, ghosts):
-    # Display ghosts
-    for ghost in ghosts:
-        display(Ghosts.images["body"][ghost.id], ghost.pos)
-        #display(images["eyes"], ghost.pos)
-    
-    # Display pacman (facing the proper direction)
-    match pacman.dir:
-        case 'w':
-            display(pygame.transform.rotate(pacu, 90), pacman.pos)
-        case 'a':
-            display(pygame.transform.rotate(pacu, 180), pacman.pos)
-        case 's':
-            display(pygame.transform.rotate(pacu, 270), pacman.pos)
-        case 'd':
-            display(pacu, pacman.pos)
-    
-    # Display ghost targets
-    # for i in range(4):
-    #     display(targets[i], ghosts[i].target) # Display the target for each ghost
-    
-    # Update pygame
-    pygame.display.flip()
-
-def __main__():
-    # Begin
+def __main__(grid_original):
+    # Beginning variables for the whole game
     fps = 60 # Frames per second
-    pacman_speed = 8.0 / fps # Tiles per second / Frames per second = Tiles per frame
+    pacman_speed = 10.0 / fps # Tiles per second / Frames per second = Tiles per frame
     ghosts_speed = [
         pacman_speed * 0.80, # 80 % - Level 1
         pacman_speed * .90,  # 90 % - Levels 2-4
         pacman_speed         # 100% - Levels 5+
     ]
-    
-    # Character objects
-    pacman = Pacman.Pacman(pacman_speed) # CHANGE FROM GHOST CLASS TO PACMAN CLASS
-    ghosts = [
-        Ghosts.Ghost('r', ghosts_speed[0], ""),
-        Ghosts.Ghost('p', ghosts_speed[0], ""),
-        Ghosts.Ghost('b', ghosts_speed[0], ""),
-        Ghosts.Ghost('o', ghosts_speed[0], "")
-    ]
-    
-    # Initialize other variables
-    pacman.dir = 'a' # Initial pacman dir    
-    phase = 's' # Begin in scatter mode
-    seconds = 0
-    phase_rotation = 0
     level = 1
     next_move = None
-    for ghost in ghosts:
-        ghost.target = pacman.pos # Update target
+    pacman = Pacman.Pacman(pacman_speed)
     
-    # Loop
+    # Loop across each level
     running = True
     while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+        # Variables for each level
+        grid = copy.deepcopy(grid_original)
+        pacman.lives = 3
+        pellets = 244
         
-        # Draw menu and check for escape
-        menu()
-        check_escape()
-        run_graph(grid)
-        clock.tick(fps) # Cap the frame rate
-        
-        # Update board
-        update_phase((phase, phase_rotation, level), ghosts, seconds, fps)
-        update_pellets(pacman, grid)
-        pellets = get_pellets(grid)
-        if pellets == 0:
-            level += 1 # Increment level
-            print("Level Complete!")
-            break
-            # RUN NEXT LEVEL SEQUENCE
-        
-        # Update character data
-        next_move = control_pacman(pacman, next_move, grid) # Direction controls
-        Pacman.update_pacman(pacman, grid)
-        Ghosts.update_ghosts(ghosts, pacman, grid, phase, fps, seconds, phase_rotation, pellets)        
-        
-        # Update display
-        display_characters(pygame, pacman, ghosts)
+        # Loop across each life
+        while pacman.lives > 0:            
+            # Variables for each new game
+            phase = 's' # Begin in scatter mode
+            seconds = phase_seconds = scared_seconds = phase_rotation = 0
+            ghosts = [
+                Ghosts.Ghost('r', ghosts_speed[0], ""),
+                Ghosts.Ghost('p', ghosts_speed[0], ""),
+                Ghosts.Ghost('b', ghosts_speed[0], ""),
+                Ghosts.Ghost('o', ghosts_speed[0], "")
+            ]
+            
+            # Run
+            prev_lives = pacman.lives
+            prev_level = level
+            while True:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        running = False
+                
+                # Draw menu and check for escape
+                menu()
+                check_escape()
+                run_graph(grid)
+                clock.tick(fps) # Cap the frame rate
+                
+                if pacman.lives != prev_lives:
+                    break
+                
+                # Update character data
+                next_move = control_pacman(pacman, next_move, grid) # Direction controls
+                Pacman.update_pacman(pacman, grid)
+                Ghosts.update_ghosts(ghosts, pacman, grid, phase, fps, seconds, phase_rotation, pellets)
+                
+                # Update board
+                seconds += 1 / fps # Increment timer
+                phase, phase_rotation, level, phase_seconds, scared_seconds = update_phase((phase, phase_rotation, level, phase_seconds, scared_seconds), ghosts, pacman, grid, fps)
+                pellets = get_pellets(grid)
+                if pellets == 0:
+                    level += 1 # Increment level
+                    print("Level Complete!")
+                    return
+                    # RUN NEXT LEVEL SEQUENCE
+                
+                # Update display
+                display_characters(pygame, pacman, ghosts)
+            time.sleep(2) # Wait for level to start
     pygame.quit()
 
-__main__()
+__main__(grid)

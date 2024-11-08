@@ -25,3 +25,6 @@ class Position:
     
     def equals(self, pos):
         return self.x == pos.x and self.y == pos.y
+    
+    def to_string(self):
+        return f"{self.x}, {self.y}"
