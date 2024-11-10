@@ -308,6 +308,9 @@ def update_pellets(pacman, grid, phase):
             grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
             phase = 'f' # Change phase to frightened mode
             Sound.play_waka(True) # Play sound
+        elif grid[27 - pos.x, pos.y] == '____':
+            if not Sound.pygame.mixer.get_busy():
+                Sound.play_waka(False) # Stop sound
     return phase
 
 def __main__(grid_original):

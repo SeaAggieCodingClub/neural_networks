@@ -1,6 +1,7 @@
 from Character import *
 from Position import *
 import copy
+import Sound
 
 class Pacman(Character):
     lives = 3
@@ -13,6 +14,7 @@ class Pacman(Character):
     def kill(self):
         self.is_dead = True
         self.lives -= 1
+        Sound.play_death_sound()
         
 def update_pacman(pacman, grid):
     pacman.check_warp_tunnels()
