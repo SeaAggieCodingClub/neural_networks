@@ -7,7 +7,7 @@ import Pacman
 import Sound
 from Position import *
 import copy
-
+from Pacman import Pacman
 pygame.init()
 
 
@@ -218,7 +218,7 @@ def get_pellets(grid):
     return sum
 
 # Updates the phases and sounds associated with eating pellets
-def update_pelletsv2(pacman, grid, phase, scared_seconds):
+def update_pellets(pacman, grid, phase, scared_seconds):
     # Pacman Eating Dots
     pos = pacman.pos.tile() # Centered position
     if 0 <= pos.x <= 27: # Check if indices are in range
@@ -232,42 +232,7 @@ def update_pelletsv2(pacman, grid, phase, scared_seconds):
 
     return phase, scared_seconds
 
-# Changes the direction of pacman from the keyboard input, if move is invalid returns the next move 
-def control_pacman(pacman, next_move, grid):
-    # Direction controls
-    # next_move = next_move_list[0] # Store as tuple for pass by reference
-    pos = pacman.pos.tile() # Centered position
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_w] or next_move == 'w':
-        if pacman.check_wall('w', grid):
-            next_move = 'w' # Set a buffer for the next move
-        else:
-            pacman.dir = 'w'
-            next_move = None
-            pacman.pos.x = pos.x # Center x position
-    if keys[pygame.K_a] or next_move == 'a':
-        if pacman.check_wall('a', grid):
-            next_move = 'a' # Set a buffer for the next move
-        else:
-            pacman.dir = 'a'
-            next_move = None
-            pacman.pos.y = pos.y # Center y position
-    if keys[pygame.K_s] or next_move == 's':
-        if pacman.check_wall('s', grid):
-            next_move = 's' # Set a buffer for the next move
-        else:
-            pacman.dir = 's'
-            next_move = None
-            pacman.pos.x = pos.x # Center x position
-    if keys[pygame.K_d] or next_move == 'd':
-        if pacman.check_wall('d', grid):
-            next_move = 'd' # Set a buffer for the next move
-        else:
-            pacman.dir = 'd'
-            next_move = None
-            pacman.pos.y = pos.y # Center y position
-    
-    return next_move
+
 
 # Switches the ghost phase from chase to scatter and back again
 def phase_switch(phase, phase_rotation):
@@ -283,7 +248,7 @@ def update_phase(values, ghosts, pacman, grid, fps):
     (phase, phase_rotation, level, phase_seconds, scared_seconds) = values # Store in tuple for a pass by reference
     
     prev_phase = phase # Hold variable
-    phase, scared_seconds = update_pelletsv2(pacman, grid, phase, scared_seconds) # Check pellets
+    phase, scared_seconds = update_pellets(pacman, grid, phase, scared_seconds) # Check pellets
     
     if phase == 'f': # If phase has changed
         if phase != prev_phase:
@@ -315,29 +280,29 @@ def update_phase(values, ghosts, pacman, grid, fps):
     #print("Phase in", phase)
     return (phase, phase_rotation, level, phase_seconds, scared_seconds)
 
-def update_pellets(pacman, grid, phase):
-    # Pacman Eating Dots
-    pos = pacman.pos.tile() # Centered position
-    if 0 <= pos.x <= 27: # Check if indices are in range
-        grid_value = grid[27 - pos.x, pos.y]
-        if grid_value == 'dot_': # If position is on a dot
-            grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
-            Sound.play_waka(True) # Play sound
-        elif grid[27 - pos.x, pos.y] == 'pdot':
-            grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
-            phase = 'f' # Change phase to frightened mode
-            Sound.play_waka(True) # Play sound
-        elif grid[27 - pos.x, pos.y] == '____':
-            if not Sound.pygame.mixer.get_busy():
-                Sound.play_waka(False) # Stop sound
-    return phase
+# def update_pellets(pacman, grid, phase):
+#     # Pacman Eating Dots
+#     pos = pacman.pos.tile() # Centered position
+#     if 0 <= pos.x <= 27: # Check if indices are in range
+#         grid_value = grid[27 - pos.x, pos.y]
+#         if grid_value == 'dot_': # If position is on a dot
+#             grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
+#             Sound.play_waka(True) # Play sound
+#         elif grid[27 - pos.x, pos.y] == 'pdot':
+#             grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
+#             phase = 'f' # Change phase to frightened mode
+#             Sound.play_waka(True) # Play sound
+#         elif grid[27 - pos.x, pos.y] == '____':
+#             if not Sound.pygame.mixer.get_busy():
+#                 Sound.play_waka(False) # Stop sound
+#     return phase
 
 def __main__(grid_original):
     # Beginning variables for the whole game
     fps = 60 # Frames per second
     level = 1
     
-    pacman = Pacman.Pacman(10.0 / fps) # Tiles per second / Frames per second = Tiles per frame
+    pacman = Pacman(10.0 / fps) # Tiles per second / Frames per second = Tiles per frame
     
     # Loop across each level
     running = True
@@ -388,8 +353,8 @@ def __main__(grid_original):
                 clock.tick(fps) # Cap the frame rate
                 
                 # Update character data
-                next_move = control_pacman(pacman, next_move, grid) # Direction controls
-                Pacman.update_pacman(pacman, grid)
+                next_move = pacman.control_pacman(next_move, grid) # Direction controls
+                pacman.update_pacman(grid)
                 Ghosts.update_ghosts(ghosts, pacman, level, grid, phase, fps, seconds, pellets)
                 
                 # Update board

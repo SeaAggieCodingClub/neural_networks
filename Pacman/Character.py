@@ -1,5 +1,5 @@
 import copy
-
+import pygame
 # Tunnels on either side for the characters to traverse, x pos
 warp_tunnels = {
     'right':-1,
@@ -7,7 +7,7 @@ warp_tunnels = {
 }
 
 # Parent class over Pacman and Ghosts
-class Character:
+class Character(pygame.sprite.Sprite):
     images = None
     id = None
     pos = None
