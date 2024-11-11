@@ -315,6 +315,23 @@ def update_phase(values, ghosts, pacman, grid, fps):
     #print("Phase in", phase)
     return (phase, phase_rotation, level, phase_seconds, scared_seconds)
 
+def update_pellets(pacman, grid, phase):
+    # Pacman Eating Dots
+    pos = pacman.pos.tile() # Centered position
+    if 0 <= pos.x <= 27: # Check if indices are in range
+        grid_value = grid[27 - pos.x, pos.y]
+        if grid_value == 'dot_': # If position is on a dot
+            grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
+            Sound.play_waka(True) # Play sound
+        elif grid[27 - pos.x, pos.y] == 'pdot':
+            grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
+            phase = 'f' # Change phase to frightened mode
+            Sound.play_waka(True) # Play sound
+        elif grid[27 - pos.x, pos.y] == '____':
+            if not Sound.pygame.mixer.get_busy():
+                Sound.play_waka(False) # Stop sound
+    return phase
+
 def __main__(grid_original):
     # Beginning variables for the whole game
     fps = 60 # Frames per second
