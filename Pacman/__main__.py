@@ -159,15 +159,17 @@ def find_cordinates(x,y):
     py = (18*y)+ -20
     return px,py
 
-def run_graph(level):
-    for key in level:
-        x,y = key
+def run_graph(grid, seconds):
+    for key in grid:
+        x, y = key
         
-        if key == (x,y):
-            px,py = find_cordinates(key[0],key[1] + 4) # Add 4 tiles for top offset
-            if level[(x,y)] == 'dot_':
-                screen.blit(dot_,(px,py))
-            if level[(x,y)] == 'pdot':
+        if key == (x, y):
+            px, py = find_cordinates(key[0], key[1] + 4) # Add 4 tiles for top offset
+            blink_rate = 6 # Blinks per second for the power pellets
+            
+            if grid[(x, y)] == 'dot_':
+                screen.blit(dot_,(px, py))
+            if grid[(x, y)] == 'pdot' and int(seconds * blink_rate) % 2 == 0:
                 screen.blit(pdot,(px - 12, py - 12))
                 
             # if level[(x,y)] == 'wall':
@@ -215,6 +217,21 @@ def get_pellets(grid):
             sum += 1 # Add to sum
     return sum
 
+# Updates the phases and sounds associated with eating pellets
+def update_pellets(pacman, grid, phase, scared_seconds):
+    # Pacman Eating Dots
+    pos = pacman.pos.tile() # Centered position
+    if 0 <= pos.x <= 27: # Check if indices are in range
+        grid_value = grid[27 - pos.x, pos.y]
+        if grid_value in ['dot_', 'pdot']: # If position is on any dot
+            grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
+            pacman.pause = True
+            Sound.play_waka(True) # Play sound
+        if grid_value == 'pdot':
+            phase = 'f' # Change phase to frightened mode
+
+    return phase, scared_seconds
+
 # Changes the direction of pacman from the keyboard input, if move is invalid returns the next move 
 def control_pacman(pacman, next_move, grid):
     # Direction controls
@@ -252,6 +269,7 @@ def control_pacman(pacman, next_move, grid):
     
     return next_move
 
+# Switches the ghost phase from chase to scatter and back again
 def phase_switch(phase, phase_rotation):
     if phase == 's':
         phase = 'c'
@@ -260,11 +278,12 @@ def phase_switch(phase, phase_rotation):
         phase_rotation += 1
     return phase, phase_rotation
 
+# Updates the ghosts attributes according to each phase
 def update_phase(values, ghosts, pacman, grid, fps):
     (phase, phase_rotation, level, phase_seconds, scared_seconds) = values # Store in tuple for a pass by reference
     
     prev_phase = phase # Hold variable
-    phase = update_pellets(pacman, grid, phase) # Check pellets
+    phase, scared_seconds = update_pellets(pacman, grid, phase, scared_seconds) # Check pellets
     
     if phase == 'f': # If phase has changed
         if phase != prev_phase:
@@ -296,32 +315,12 @@ def update_phase(values, ghosts, pacman, grid, fps):
     #print("Phase in", phase)
     return (phase, phase_rotation, level, phase_seconds, scared_seconds)
 
-def update_pellets(pacman, grid, phase):
-    # Pacman Eating Dots
-    pos = pacman.pos.tile() # Centered position
-    if 0 <= pos.x <= 27: # Check if indices are in range
-        grid_value = grid[27 - pos.x, pos.y]
-        if grid_value == 'dot_': # If position is on a dot
-            grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
-            Sound.play_waka(True) # Play sound
-        elif grid[27 - pos.x, pos.y] == 'pdot':
-            grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
-            phase = 'f' # Change phase to frightened mode
-            Sound.play_waka(True) # Play sound
-    return phase
-
 def __main__(grid_original):
     # Beginning variables for the whole game
     fps = 60 # Frames per second
-    pacman_speed = 10.0 / fps # Tiles per second / Frames per second = Tiles per frame
-    ghosts_speed = [
-        pacman_speed * 0.80, # 80 % - Level 1
-        pacman_speed * .90,  # 90 % - Levels 2-4
-        pacman_speed         # 100% - Levels 5+
-    ]
     level = 1
-    next_move = None
-    pacman = Pacman.Pacman(pacman_speed)
+    
+    pacman = Pacman.Pacman(10.0 / fps) # Tiles per second / Frames per second = Tiles per frame
     
     # Loop across each level
     running = True
@@ -330,23 +329,37 @@ def __main__(grid_original):
         grid = copy.deepcopy(grid_original)
         pacman.lives = 3
         pellets = 244
+        print(level)
+        
+        # Change speeds based on level
+        if level == 1:
+            pacman.speed = pacman.base_speed * 0.80
+            ghosts_speed = pacman.speed * 0.80 # 80 % - Level 1
+        elif 2 <= level <= 4:
+            ghosts_speed = pacman.speed * .90  # 90 % - Levels 2-4
+        elif level == 21:
+            pacman.speed = pacman.base_speed
+            ghosts_speed = pacman.speed         # 100% - Levels 5+
+        else:
+            pacman.speed = pacman.base_speed * 0.90
         
         # Loop across each life
-        while pacman.lives > 0:            
-            # Variables for each new game
+        prev_level = level
+        while pacman.lives > 0 and prev_level == level: # Break when pacman either dies or advances a level         
+            # Variables for each life
             phase = 's' # Begin in scatter mode
+            next_move = None
             seconds = phase_seconds = scared_seconds = phase_rotation = 0
             ghosts = [
-                Ghosts.Ghost('r', ghosts_speed[0], ""),
-                Ghosts.Ghost('p', ghosts_speed[0], ""),
-                Ghosts.Ghost('b', ghosts_speed[0], ""),
-                Ghosts.Ghost('o', ghosts_speed[0], "")
+                Ghosts.Ghost('r', ghosts_speed, ""),
+                Ghosts.Ghost('p', ghosts_speed, ""),
+                Ghosts.Ghost('b', ghosts_speed, ""),
+                Ghosts.Ghost('o', ghosts_speed, "")
             ]
             
             # Run
             prev_lives = pacman.lives
-            prev_level = level
-            while True:
+            while prev_lives == pacman.lives: # Break when pacman loses a life
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         running = False
@@ -354,30 +367,28 @@ def __main__(grid_original):
                 # Draw menu and check for escape
                 menu()
                 check_escape()
-                run_graph(grid)
+                run_graph(grid, seconds)
                 clock.tick(fps) # Cap the frame rate
-                
-                if pacman.lives != prev_lives:
-                    break
                 
                 # Update character data
                 next_move = control_pacman(pacman, next_move, grid) # Direction controls
                 Pacman.update_pacman(pacman, grid)
-                Ghosts.update_ghosts(ghosts, pacman, grid, phase, fps, seconds, phase_rotation, pellets)
+                Ghosts.update_ghosts(ghosts, pacman, level, grid, phase, fps, seconds, pellets)
                 
                 # Update board
                 seconds += 1 / fps # Increment timer
-                phase, phase_rotation, level, phase_seconds, scared_seconds = update_phase((phase, phase_rotation, level, phase_seconds, scared_seconds), ghosts, pacman, grid, fps)
+                phase_values = update_phase((phase, phase_rotation, level, phase_seconds, scared_seconds), ghosts, pacman, grid, fps)
+                phase, phase_rotation, level, phase_seconds, scared_seconds = phase_values
                 pellets = get_pellets(grid)
                 if pellets == 0:
                     level += 1 # Increment level
                     print("Level Complete!")
-                    return
-                    # RUN NEXT LEVEL SEQUENCE
+                    break
                 
                 # Update display
                 display_characters(pygame, pacman, ghosts)
             time.sleep(2) # Wait for level to start
+            pacman.reset_position()
     pygame.quit()
 
 __main__(grid)

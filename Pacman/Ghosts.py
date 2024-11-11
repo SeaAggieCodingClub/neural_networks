@@ -215,15 +215,7 @@ class Ghost(Character):
             case 's':
                 self.dir = 'w'
             case 'd':
-                self.dir = 'a'
-    
-    # Check for the conditions for each ghost to leave the house
-    def try_exit(self, seconds, pellets):
-        # If the ghost satisfies its exit condition   
-        if (self.id == 'p' and int(seconds) == 8 or
-            self.id == 'b' and pellets == 200 or
-            self.id == 'o' and pellets == 160):
-            self.exit() 
+                self.dir = 'a' 
     
     def exit(self):
         # Begin to exit the house
@@ -295,7 +287,7 @@ def update_phase_attributes(ghosts, phase, prev_phase):
     if prev_phase in ['c', 's']:
         for ghost in ghosts:
             ghost.turn_around()
-
+    
     # CHANGE VALUES LATER
     # Change speeds based on phase
     match phase:
@@ -313,10 +305,10 @@ def update_personalities(ghosts, pacman, fps, pellets):
     # red ghost should speed up after x number of pellets gone, and permanently be in chase mode
     # RED
     red = ghosts[0]
-    if pellets == 20:
+    if pellets == 60:
         red.speed = red.base_speed * 1.05 # Increase speed by 5%
         red.in_chase = True
-    elif pellets == 10:
+    elif pellets == 30:
         red.speed = red.base_speed * 1.10 # Increase speed by 10%
     
     # PINK
@@ -332,15 +324,42 @@ def update_personalities(ghosts, pacman, fps, pellets):
             pink.blush_timer = fps # Pacman is "looking at her", set a blush timer for 1 second
             pink.is_scared = True # Pink is scared
 
+# Check for the conditions for each ghost to leave the house
+def try_exit(ghosts, level, seconds, pellets):
+    # Good luck to whomever is debugging this monstrosity
+    pink = ghosts[1]
+    blue = ghosts[2]
+    orange = ghosts[3]
+    
+    # If the ghost satisfies its exit condition
+    if not pink.is_active and level > 2 or int(seconds) == 8:
+        pink.exit()
+    elif (
+        not blue.is_active
+        and pink.is_active
+        and not pink.is_in_house()
+        and not pink.is_at_entrance()
+        and (level > 2 or pellets <= 200)
+    ):
+        blue.exit()
+    elif (
+        not orange.is_active
+        and blue.is_active
+        and not blue.is_in_house()
+        and not blue.is_at_entrance()
+        and (level > 2 or pellets <= 160)
+    ):
+        orange.exit()
+
 # Moves the ghost out of the starting house
 def move_exit_house(ghost):
     if 13.4 < ghost.pos.x < 13.6: # If the ghost reaches the x position of the exit gate
         ghost.dir = 'w' # Turn upward
         ghost.pos.x = 13.5 # Center
-    ghost.move(ghost.speed) # Move regularly
+    ghost.move(ghost.speed / 2)
 
 # Moves the ghost back to the starting house (After death)
-def move_return_to_house(ghost, grid, phase): # UPDATE LATER         
+def move_return_to_house(ghost, grid, phase):       
     if ghost.is_at_entrance():
         # Move ghost into house
         ghost.pos.x = 13.5 # Move center to the entrance
@@ -386,20 +405,24 @@ def move_normal(ghosts, ghost, pacman, grid, phase):
     ghost.move(ghost.speed)
 
 # Updates everything about the ghosts' data
-def update_ghosts(ghosts, pacman, grid, phase, fps, seconds, phase_rotation, pellets): 
+def update_ghosts(ghosts, pacman, level, grid, phase, fps, seconds, pellets): 
     # Specifics for each ghost
     update_personalities(ghosts, pacman, fps, pellets)
     
     for ghost in ghosts:
         # Check for death
-        if ghost.pos.tile().equals(pacman.pos.tile()): # If pacman is on the ghost
+        pos = ghost.pos.tile()
+        copy_pacman = copy.deepcopy(pacman)
+        copy_pacman.move(.5)
+        if pos.equals(pacman.pos.tile()) or pos.equals(copy_pacman.pos.tile()): # If pacman is on or near the ghost
             if phase == 'f': # If in frightened mode
+                # if not ghost.is_dead:
+                #     time.sleep(1)
                 ghost.kill()
-                print("KILLED GHOST")
+                print("KILLED GHOST", ghost.id)
             else:
                 pacman.kill()
                 print("KILLED PACMAN", pacman.lives)
-                time.sleep(1.5)
                 return
         if ghost.is_active:
             if ghost.is_in_house(): # If the ghost is waiting to exit the house
@@ -409,9 +432,11 @@ def update_ghosts(ghosts, pacman, grid, phase, fps, seconds, phase_rotation, pel
             elif ghost.is_dead: # If the ghost has died, return to house
                 move_return_to_house(ghost, grid, phase)
             else: # Normal movement
+                if ghost.is_at_entrance(): # Ghost just came out of the house
+                    ghost.target = Position(14, 11) # ghost.dir = 'a'
                 move_normal(ghosts, ghost, pacman, grid, phase)
         else:
-            ghost.move(ghost.speed)
+            ghost.move(ghost.base_speed)
             if ghost.check_wall(ghost.dir, grid):
                 ghost.turn_around()
-            ghost.try_exit(seconds, pellets)
+            try_exit(ghosts, level, seconds, pellets)
