@@ -218,7 +218,7 @@ def get_pellets(grid):
     return sum
 
 # Updates the phases and sounds associated with eating pellets
-def update_pellets(pacman, grid, phase, scared_seconds):
+def update_pelletsv2(pacman, grid, phase, scared_seconds):
     # Pacman Eating Dots
     pos = pacman.pos.tile() # Centered position
     if 0 <= pos.x <= 27: # Check if indices are in range
@@ -283,7 +283,7 @@ def update_phase(values, ghosts, pacman, grid, fps):
     (phase, phase_rotation, level, phase_seconds, scared_seconds) = values # Store in tuple for a pass by reference
     
     prev_phase = phase # Hold variable
-    phase, scared_seconds = update_pellets(pacman, grid, phase, scared_seconds) # Check pellets
+    phase, scared_seconds = update_pelletsv2(pacman, grid, phase, scared_seconds) # Check pellets
     
     if phase == 'f': # If phase has changed
         if phase != prev_phase:
