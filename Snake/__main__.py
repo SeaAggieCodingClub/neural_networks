@@ -24,11 +24,15 @@ button_surface = pygame.transform.scale(button_surface, (235, 55))
 back_button_surface = pygame.image.load("Snake/images/basic_button.png").convert()
 back_button_surface = pygame.transform.scale(back_button_surface, (100, 40))
 
-#snake picture
-snake_speed = 20
+snake_speed = 20 # speed of snake
+
+#snake head and body
 snake_head_image = pygame.image.load('Snake/images/snake head.png').convert_alpha()
-snake_head_image = pygame.transform.scale(snake_head_image, (40,40))  # Resize image to 20x20 pixels more or less
+snake_head_image = pygame.transform.scale(snake_head_image, (45,45))  # Resize image to 45x45 pixels more or less
 snake_head = snake_head_image
+snake_body_image = pygame.image.load('Snake/images/snake_body.png').convert_alpha()
+snake_body_image = pygame.transform.scale(snake_body_image,(45,45)) # accurately same size as head
+snake_body = snake_body_image
 #snake position
 snake_body = [(20, 20)]  # Initial position
 direction = (1, 0)       # Initial direction (moving right)
@@ -104,7 +108,7 @@ def options():
 def play():
     global direction
 
-    snake_body = [(20, 20)]  # Initial position
+    snake_body = [(100, 350)]  # Initial position
     direction = (1, 0)
 
     while True:
