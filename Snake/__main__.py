@@ -26,7 +26,7 @@ back_button_surface = pygame.transform.scale(back_button_surface, (100, 40))
 
 #snake picture
 snake_speed = 20
-snake_head_image = pygame.image.load('Snake/snake head.png').convert_alpha()
+snake_head_image = pygame.image.load('Snake/images/snake head.png').convert_alpha()
 snake_head_image = pygame.transform.scale(snake_head_image, (40,40))  # Resize image to 20x20 pixels more or less
 snake_head = snake_head_image
 #snake position
