@@ -1,7 +1,39 @@
 import pygame
 import time
 import sys
+import random
 from button import Button
+from pygame.math import Vector2
+
+class MAIN:
+    def __init__(self):
+        self.fruit = FRUIT()
+
+    def update(self):
+        self.draw_elements()
+        self.check_collision()
+
+    def draw_elements(self):
+        self.fruit.draw_fruit()
+
+    def check_collision(self):
+        if self.fruit.coords == snake_body[0]:
+            self.fruit.randomize()
+            # Add block to snake
+    
+class FRUIT:
+    def __init__(self):
+        self.randomize()
+
+    def draw_fruit(self):
+        fruit_rect = pygame.Rect(int(self.pos.x * cell_size), int(self.pos.y * cell_size), cell_size, cell_size)
+        screen.blit(apple, fruit_rect)
+        # pygame.draw.rect(screen, (126, 166, 114), fruit_rect)
+
+    def randomize(self):
+        self.x = random.randint(0, cell_number - 1)
+        self.y = random.randint(0, cell_number - 1)
+        self.pos = Vector2(self.x, self.y)
 
 pygame.init()
 
@@ -10,13 +42,15 @@ cell_size = 20
 screen_width = cell_number * cell_size
 screen_height = cell_number * cell_size
 
-
 # Window resolution
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Snake")
 clock = pygame.time.Clock()
+apple = pygame.image.load("Snake/apple.png").convert_alpha()
 main_font = pygame.font.SysFont("Arial", 26)
 back_font = pygame.font.SysFont("Arial", 20)
+
+main_game = MAIN()
 
 # Button variables
 button_surface = pygame.image.load("Snake/images/basic_button.png").convert()
@@ -141,11 +175,13 @@ def play():
             break
         snake_body = [new_head] + snake_body[:-1]  # Add new head and remove last segment
 
+
         screen.blit(snake_head, snake_body[0])  # Draw rotated head
         for segment in snake_body[1:]:  # Draw the rest of the body without rotation
             screen.blit(snake_head_image, segment)
             pygame.draw.rect(screen, (0, 255, 0), (*segment, cell_size, cell_size))
-
+        
+        main_game.draw_elements()
         pygame.display.update()
         
         # Frame rate
