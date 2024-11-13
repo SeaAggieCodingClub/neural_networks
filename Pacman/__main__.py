@@ -45,8 +45,8 @@ images = {
     "pacman":"Pacman/images/pacman.png"
 }
 
-pac = pygame.image.load("Pacman/images/pacman.png")
-pacu = pygame.transform.scale(pac, (45,45))
+# pac = pygame.image.load("Pacman/images/pacman.png")
+# pacu = pygame.transform.scale(pac, (45,45))
 
 targets = []
 for _ in range(4):
@@ -238,16 +238,17 @@ def display_characters(pygame, pacman, ghosts):
         #display(images["eyes"], ghost.pos)
     
     # Display pacman (facing the proper direction)
-    match pacman.dir:
-        case 'w':
-            display(pygame.transform.rotate(pacu, 90), pacman.pos)
-        case 'a':
-            display(pygame.transform.rotate(pacu, 180), pacman.pos)
-        case 's':
-            display(pygame.transform.rotate(pacu, 270), pacman.pos)
-        case 'd':
-            display(pacu, pacman.pos)
-    
+    # match pacman.dir:
+    #     case 'w':
+    #         display(pygame.transform.rotate(pacu, 90), pacman.pos)
+    #     case 'a':
+    #         display(pygame.transform.rotate(pacu, 180), pacman.pos)
+    #     case 's':
+    #         display(pygame.transform.rotate(pacu, 270), pacman.pos)
+    #     case 'd':
+    #         display(pacu, pacman.pos)
+    pacman.rotate_sprite()
+    display(pacman.image, pacman.pos) # Display pacman
     # Display ghost targets
     for i in range(4):
          display(targets[i], ghosts[i].target) # Display the target for each ghost

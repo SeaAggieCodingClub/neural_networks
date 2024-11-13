@@ -9,7 +9,7 @@ warp_tunnels = {
 
 # Parent class over Pacman and Ghosts
 class Character(pygame.sprite.Sprite):
-    images = None
+    sprites = {}
     id = None
     pos = None
     dir = None
@@ -55,10 +55,11 @@ class Character(pygame.sprite.Sprite):
     
     # Returns True if there is a wall ahead of the character
     def check_wall(self, dir, grid):
-        copy_self = copy.deepcopy(self) # Make a copy
-        copy_self.dir = dir
-        copy_self.move(0.6) # Move the copy 1 tile forward
-        pos = copy_self.pos.tile() # Store the tile pos
+        # copy_self = copy.deepcopy(self) # Make a copy
+        # copy_self.dir = dir
+        # copy_self.move(0.6) # Move the copy 1 tile forward
+        
+        pos = self.movep(0.6, dir).tile() # Store the tile pos
         
         if 0 <= pos.x <= 27: # Check if grid indices are in range
             if grid[pos.x, pos.y] == 'wall': # Check if pos is a wall
