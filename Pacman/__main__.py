@@ -8,6 +8,7 @@ import Sound
 from Position import *
 import copy
 from Pacman import Pacman
+from pygame import color
 pygame.init()
 
 
@@ -203,8 +204,8 @@ def display_characters(pygame, pacman, ghosts):
             display(pacu, pacman.pos)
     
     # Display ghost targets
-    # for i in range(4):
-    #     display(targets[i], ghosts[i].target) # Display the target for each ghost
+    for i in range(4):
+         display(targets[i], ghosts[i].target) # Display the target for each ghost
     
     # Update pygame
     pygame.display.flip()
@@ -297,12 +298,64 @@ def update_phase(values, ghosts, pacman, grid, fps):
 #                 Sound.play_waka(False) # Stop sound
 #     return phase
 
+def start_menu(speed_pacman, speed_ghosts, speed_ghosts_frightened):
+    # doesn't use any of the speeds yet, but it will once I add the sequence with the ghosts chasing/getting chased by pacman later
+    
+    # Set up the screen for the start menu
+    screen.fill(black)
+
+    # Font for text
+    font = pygame.font.Font("Pacman/fonts/emulogic-font/Emulogic-zrEw.ttf", 36)
+    smaller_font = pygame.font.Font("Pacman/fonts/emulogic-font/Emulogic-zrEw.ttf", 24)
+
+    # Estimated positions, labels, colors, and images for every ghost
+    ghost_details = [
+        [(50, 100), "SHADOW - \"BLINKY\"", (255,0,0), pygame.image.load(images['r'])],  # Red ghost at (50, 100)
+        [(50, 150), "SPEEDY - \"PINKY\"", (255,184,255), pygame.image.load(images['p'])],  # Pink ghost at (50, 150)
+        [(50, 200), "BASHFUL - \"INKY\"", (0,255,255), pygame.image.load(images['b'])],  # Blue ghost at (50, 200)
+        [(50, 250), "POKEY - \"CLYDE\"", (255,184,82), pygame.image.load(images['o'])]]  # Orange ghost at (50, 250)
+
+    # scale the ghost images
+    for num in range(len(ghost_details)):
+        ghost_details[num][3] = pygame.transform.scale(ghost_details[num][3], (40,40))
+
+    for num in range(len(ghost_details)):
+        x, y = ghost_details[num][0][0], ghost_details[num][0][1]
+        label, color, image = ghost_details[num][1], ghost_details[num][2], ghost_details[num][3]
+        text = font.render(label, True, color)
+        
+        screen.blit(image, (top_right_x-640 + x, y)) # place the image at the position for that ghost
+        screen.blit(text, (top_right_x-640 + x + 90, y))  # position text to the right of the ghost
+    
+    # Estimated positions for the pellet point values
+    point_details = [
+        ((250, 450), "10 PTS", dot_),  # "10 PTS" at (300, 350)
+        ((250, 500), "50 PTS", pdot)   # "50 PTS" at (300, 400)
+    ]
+
+    for num in range(len(point_details)):
+        x, y = point_details[num][0][0], point_details[num][0][1]
+        label, image = point_details[num][1], point_details[num][2]
+        text = smaller_font.render(label, True, (255, 255, 255))
+        screen.blit(image, (top_right_x-640 + x, y))
+        screen.blit(text, (top_right_x-640 + x + 90, y))
+    
+
+    # Update the display
+    pygame.display.flip()
+
+    pygame.time.wait(5000) # wait 5 secs as a placeholder for the ghost animation at the start
+
 def __main__(grid_original):
     # Beginning variables for the whole game
     fps = 60 # Frames per second
     level = 1
-    
     pacman = Pacman(10.0 / fps) # Tiles per second / Frames per second = Tiles per frame
+    speed_pacman = pacman.base_speed * 0.80
+    speed_ghosts = pacman.speed * 0.80 # frightened ghosts are two-thirds of their normal speed
+    start_menu(speed_pacman, speed_ghosts, speed_ghosts*2/3) 
+    
+    
     
     # Loop across each level
     running = True
@@ -319,11 +372,11 @@ def __main__(grid_original):
             ghosts_speed = pacman.speed * 0.80 # 80 % - Level 1
         elif 2 <= level <= 4:
             ghosts_speed = pacman.speed * .90  # 90 % - Levels 2-4
-        elif level == 21:
+        elif level <= 21:
             pacman.speed = pacman.base_speed
             ghosts_speed = pacman.speed         # 100% - Levels 5+
         else:
-            pacman.speed = pacman.base_speed * 0.90
+            pacman.speed = pacman.base_speed * 0.90 # levels 21+
         
         # Loop across each life
         prev_level = level
