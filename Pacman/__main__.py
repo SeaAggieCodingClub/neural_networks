@@ -8,7 +8,6 @@ import Sound
 from Position import *
 import copy
 from Pacman import Pacman
-from pygame import color
 pygame.init()
 
 
@@ -53,8 +52,6 @@ targets = []
 for _ in range(4):
     img = pygame.image.load("Pacman/images/target.png") # Load the image
     targets += [pygame.transform.scale(img, (35, 35))] # Scale the image and reference it back to the key
-
-
 
 # Set clock speed
 clock = pygame.time.Clock()
@@ -154,6 +151,54 @@ def menu():
     pygame.draw.rect(screen, blue, outside_border, border_radius=15)
     pygame.draw.rect(screen, black, inside_border, border_radius=15)
     screen.blit(background,(250, 5))
+
+def start_menu(speed_pacman, speed_ghosts, speed_ghosts_frightened):
+    # doesn't use any of the speeds yet, but it will once I add the sequence with the ghosts chasing/getting chased by pacman later
+    
+    # Set up the screen for the start menu
+    screen.fill(black)
+
+    # Font for text
+    font = pygame.font.Font("Pacman/fonts/emulogic-font/Emulogic-zrEw.ttf", 36)
+    smaller_font = pygame.font.Font("Pacman/fonts/emulogic-font/Emulogic-zrEw.ttf", 24)
+
+    # Estimated positions, labels, colors, and images for every ghost
+    ghost_details = [
+        [(50, 100), "SHADOW - \"BLINKY\"", (255,0,0), pygame.image.load(images['r'])],  # Red ghost at (50, 100)
+        [(50, 150), "SPEEDY - \"PINKY\"", (255,184,255), pygame.image.load(images['p'])],  # Pink ghost at (50, 150)
+        [(50, 200), "BASHFUL - \"INKY\"", (0,255,255), pygame.image.load(images['b'])],  # Blue ghost at (50, 200)
+        [(50, 250), "POKEY - \"CLYDE\"", (255,184,82), pygame.image.load(images['o'])]]  # Orange ghost at (50, 250)
+
+    # scale the ghost images
+    for num in range(len(ghost_details)):
+        ghost_details[num][3] = pygame.transform.scale(ghost_details[num][3], (40,40))
+
+    for num in range(len(ghost_details)):
+        x, y = ghost_details[num][0][0], ghost_details[num][0][1]
+        label, color, image = ghost_details[num][1], ghost_details[num][2], ghost_details[num][3]
+        text = font.render(label, True, color)
+        
+        screen.blit(image, (top_right_x-640 + x, y)) # place the image at the position for that ghost
+        screen.blit(text, (top_right_x-640 + x + 90, y))  # position text to the right of the ghost
+    
+    # Estimated positions for the pellet point values
+    point_details = [
+        ((250, 450), "10 PTS", dot_),  # "10 PTS" at (300, 350)
+        ((250, 500), "50 PTS", pdot)   # "50 PTS" at (300, 400)
+    ]
+
+    for num in range(len(point_details)):
+        x, y = point_details[num][0][0], point_details[num][0][1]
+        label, image = point_details[num][1], point_details[num][2]
+        text = smaller_font.render(label, True, (255, 255, 255))
+        screen.blit(image, (top_right_x-640 + x, y))
+        screen.blit(text, (top_right_x-640 + x + 90, y))
+    
+
+    # Update the display
+    pygame.display.flip()
+
+    pygame.time.wait(3000) # wait 3 secs as a placeholder for the ghost animation at the start
     
 def find_cordinates(x,y):
     px = (18*x) + 250
@@ -233,8 +278,6 @@ def update_pellets(pacman, grid, phase, scared_seconds):
 
     return phase, scared_seconds
 
-
-
 # Switches the ghost phase from chase to scatter and back again
 def phase_switch(phase, phase_rotation):
     if phase == 's':
@@ -277,85 +320,20 @@ def update_phase(values, ghosts, pacman, grid, fps):
             phase_seconds = 0 # Reset seconds
             Ghosts.update_phase_attributes(ghosts, phase, prev_phase) # Update ghosts
         
-        
     #print("Phase in", phase)
     return (phase, phase_rotation, level, phase_seconds, scared_seconds)
 
-# def update_pellets(pacman, grid, phase):
-#     # Pacman Eating Dots
-#     pos = pacman.pos.tile() # Centered position
-#     if 0 <= pos.x <= 27: # Check if indices are in range
-#         grid_value = grid[27 - pos.x, pos.y]
-#         if grid_value == 'dot_': # If position is on a dot
-#             grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
-#             Sound.play_waka(True) # Play sound
-#         elif grid[27 - pos.x, pos.y] == 'pdot':
-#             grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
-#             phase = 'f' # Change phase to frightened mode
-#             Sound.play_waka(True) # Play sound
-#         elif grid[27 - pos.x, pos.y] == '____':
-#             if not Sound.pygame.mixer.get_busy():
-#                 Sound.play_waka(False) # Stop sound
-#     return phase
-
-def start_menu(speed_pacman, speed_ghosts, speed_ghosts_frightened):
-    # doesn't use any of the speeds yet, but it will once I add the sequence with the ghosts chasing/getting chased by pacman later
-    
-    # Set up the screen for the start menu
-    screen.fill(black)
-
-    # Font for text
-    font = pygame.font.Font("Pacman/fonts/emulogic-font/Emulogic-zrEw.ttf", 36)
-    smaller_font = pygame.font.Font("Pacman/fonts/emulogic-font/Emulogic-zrEw.ttf", 24)
-
-    # Estimated positions, labels, colors, and images for every ghost
-    ghost_details = [
-        [(50, 100), "SHADOW - \"BLINKY\"", (255,0,0), pygame.image.load(images['r'])],  # Red ghost at (50, 100)
-        [(50, 150), "SPEEDY - \"PINKY\"", (255,184,255), pygame.image.load(images['p'])],  # Pink ghost at (50, 150)
-        [(50, 200), "BASHFUL - \"INKY\"", (0,255,255), pygame.image.load(images['b'])],  # Blue ghost at (50, 200)
-        [(50, 250), "POKEY - \"CLYDE\"", (255,184,82), pygame.image.load(images['o'])]]  # Orange ghost at (50, 250)
-
-    # scale the ghost images
-    for num in range(len(ghost_details)):
-        ghost_details[num][3] = pygame.transform.scale(ghost_details[num][3], (40,40))
-
-    for num in range(len(ghost_details)):
-        x, y = ghost_details[num][0][0], ghost_details[num][0][1]
-        label, color, image = ghost_details[num][1], ghost_details[num][2], ghost_details[num][3]
-        text = font.render(label, True, color)
-        
-        screen.blit(image, (top_right_x-640 + x, y)) # place the image at the position for that ghost
-        screen.blit(text, (top_right_x-640 + x + 90, y))  # position text to the right of the ghost
-    
-    # Estimated positions for the pellet point values
-    point_details = [
-        ((250, 450), "10 PTS", dot_),  # "10 PTS" at (300, 350)
-        ((250, 500), "50 PTS", pdot)   # "50 PTS" at (300, 400)
-    ]
-
-    for num in range(len(point_details)):
-        x, y = point_details[num][0][0], point_details[num][0][1]
-        label, image = point_details[num][1], point_details[num][2]
-        text = smaller_font.render(label, True, (255, 255, 255))
-        screen.blit(image, (top_right_x-640 + x, y))
-        screen.blit(text, (top_right_x-640 + x + 90, y))
-    
-
-    # Update the display
-    pygame.display.flip()
-
-    pygame.time.wait(5000) # wait 5 secs as a placeholder for the ghost animation at the start
 
 def __main__(grid_original):
     # Beginning variables for the whole game
     fps = 60 # Frames per second
     level = 1
+    score = 0
+    
     pacman = Pacman(10.0 / fps) # Tiles per second / Frames per second = Tiles per frame
     speed_pacman = pacman.base_speed * 0.80
     speed_ghosts = pacman.speed * 0.80 # frightened ghosts are two-thirds of their normal speed
     start_menu(speed_pacman, speed_ghosts, speed_ghosts*2/3) 
-    
-    
     
     # Loop across each level
     running = True
@@ -391,6 +369,8 @@ def __main__(grid_original):
                 Ghosts.Ghost('b', ghosts_speed, ""),
                 Ghosts.Ghost('o', ghosts_speed, "")
             ]
+            if pellets < 100:
+                ghosts[0].in_chase = True
             
             # Run
             prev_lives = pacman.lives

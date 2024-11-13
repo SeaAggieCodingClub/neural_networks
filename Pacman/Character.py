@@ -1,3 +1,4 @@
+from Position import *
 import copy
 import pygame
 # Tunnels on either side for the characters to traverse, x pos
@@ -28,6 +29,22 @@ class Character(pygame.sprite.Sprite):
                 self.pos.y += speed
             case 'd':
                 self.pos.x -= speed
+    
+    # "Move Predict" Returns a predicted position if the character moved
+    def movep(self, speed, dir):
+        x = self.pos.x
+        y = self.pos.y
+        
+        match dir:
+            case 'w':
+                y -= speed
+            case 'a':
+                x += speed
+            case 's':
+                y += speed
+            case 'd':
+                x -= speed
+        return Position(x, y)
     
     def check_warp_tunnels(self):
         pos = self.pos

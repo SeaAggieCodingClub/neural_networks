@@ -30,38 +30,38 @@ class Pacman(Character):
             self.move(self.speed)
             
     # Changes the direction of pacman from the keyboard input, if move is invalid returns the next move 
-    def control_pacman(pacman, next_move, grid):
+    def control_pacman(self, next_move, grid):
         # Direction controls
         # next_move = next_move_list[0] # Store as tuple for pass by reference
-        pos = pacman.pos.tile() # Centered position
+        pos = self.pos.tile()
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w] or next_move == 'w':
-            if pacman.check_wall('w', grid):
+            if self.check_wall('w', grid):
                 next_move = 'w' # Set a buffer for the next move
             else:
-                pacman.dir = 'w'
+                self.dir = 'w'
                 next_move = None
-                pacman.pos.x = pos.x # Center x position
+                self.pos.x = pos.x
         if keys[pygame.K_a] or next_move == 'a':
-            if pacman.check_wall('a', grid):
+            if self.check_wall('a', grid):
                 next_move = 'a' # Set a buffer for the next move
             else:
-                pacman.dir = 'a'
+                self.dir = 'a'
                 next_move = None
-                pacman.pos.y = pos.y # Center y position
+                self.pos.y = pos.y
         if keys[pygame.K_s] or next_move == 's':
-            if pacman.check_wall('s', grid):
+            if self.check_wall('s', grid):
                 next_move = 's' # Set a buffer for the next move
             else:
-                pacman.dir = 's'
+                self.dir = 's'
                 next_move = None
-                pacman.pos.x = pos.x # Center x position
+                self.pos.x = pos.x
         if keys[pygame.K_d] or next_move == 'd':
-            if pacman.check_wall('d', grid):
+            if self.check_wall('d', grid):
                 next_move = 'd' # Set a buffer for the next move
             else:
-                pacman.dir = 'd'
+                self.dir = 'd'
                 next_move = None
-                pacman.pos.y = pos.y # Center y position
-        
+                self.pos.y = pos.y
+
         return next_move

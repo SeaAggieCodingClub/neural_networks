@@ -246,10 +246,7 @@ def set_red_target(red, pacman):
     red.target = pacman.pos.tile() # Just pacman's tile position
 
 def set_pink_target(pink, pacman):
-    # Make a copy of pacman and set 4 tiles ahead
-    copy_pacman = copy.deepcopy(pacman)
-    copy_pacman.move(4) # 4 tiles in the direction pacman is facing
-    pink.target = copy_pacman.pos.tile()
+    pink.target = pacman.movep(4, pacman.dir).tile() # 4 tiles in the direction pacman is facing
 
 def set_blue_target(blue, red, pacman):
     # Tile positions
@@ -269,7 +266,7 @@ def set_orange_target(orange, pacman):
     orange.target = pacman.pos.tile() if distance > 8 else orange.scatter_target
 
 # Sets the target of any ghost given its id
-def set_targets(id, ghosts, pacman, phase):
+def set_targets(id, ghosts, pacman):
     # Set individual targets for each
     match id:
         case 'r': # Red
@@ -305,7 +302,7 @@ def update_personalities(ghosts, pacman, fps, pellets):
     # red ghost should speed up after x number of pellets gone, and permanently be in chase mode
     # RED
     red = ghosts[0]
-    if pellets == 60:
+    if pellets == 100:
         red.speed = red.base_speed * 1.05 # Increase speed by 5%
         red.in_chase = True
     elif pellets == 30:
@@ -317,9 +314,6 @@ def update_personalities(ghosts, pacman, fps, pellets):
         pink.blush_timer -= 1 # Decrement the timer by 1
     else: # When timer runs out
         pink.is_scared = False # No longer scared
-        # copy_pacman = copy.deepcopy(pacman) # Make a copy
-        # move(copy_pacman, pink.pos.distance(pacman.pos)) # Move the pacman copy forward the distance to pink (pacman may be facing a different direction)  
-        # if pink.pos.tile().equals(copy_pacman.pos.tile()): # If the tile positions match
         if pink.pos.distance(pacman.pos) < 2: # If pink is within 2 tiles of pacman
             pink.blush_timer = fps # Pacman is "looking at her", set a blush timer for 1 second
             pink.is_scared = True # Pink is scared
@@ -366,9 +360,7 @@ def move_return_to_house(ghost, grid, phase):
         ghost.dir = 's' # Turn downward
     else:
         # Check if there is a wall 1 tile ahead of the ghost
-        copy_ghost = copy.deepcopy(ghost) # Make a copy
-        copy_ghost.move(0.5) # Move the copy 1 tile forward
-        pos = copy_ghost.pos.tile() # Store the tile pos
+        pos = ghost.movep(0.5, ghost.dir).tile() # Store the tile pos
         
         if 0 <= pos.x <= 27: # Check if grid indices are in range
             if grid[pos.x, pos.y] == 'wall' or ghost.is_on_decision_tile(decision_tiles): # Check if pos is a wall or decision tile
@@ -389,8 +381,8 @@ def move_normal(ghosts, ghost, pacman, grid, phase):
         if phase == 's' and not ghost.in_chase: # If the phase is on scatter mode, and red is not in chase mode
             ghost.target = ghost.scatter_target # Set the target to its respective corner
         else: # If on chase, set the respective target
-            set_targets(ghost.id, ghosts, pacman, phase) # Update the target
-        
+            set_targets(ghost.id, ghosts, pacman) # Update the target
+
         # Turn to the chosen direction
         dir = ghost.get_turn(grid, phase, special)
         ghost.turn(dir)
@@ -400,7 +392,7 @@ def move_normal(ghosts, ghost, pacman, grid, phase):
         if ghost.check_wall(ghost.dir, grid): # Check for a wall ahead
             dir = ghost.get_turn(grid, phase, special)
             ghost.turn(dir)
-    
+
     # Move according to its speed and direction
     ghost.move(ghost.speed)
 
@@ -412,9 +404,7 @@ def update_ghosts(ghosts, pacman, level, grid, phase, fps, seconds, pellets):
     for ghost in ghosts:
         # Check for death
         pos = ghost.pos.tile()
-        copy_pacman = copy.deepcopy(pacman)
-        copy_pacman.move(.5)
-        if pos.equals(pacman.pos.tile()) or pos.equals(copy_pacman.pos.tile()): # If pacman is on or near the ghost
+        if pos.equals(pacman.pos.tile()) or pos.equals(pacman.movep(0.5, pacman.dir).tile()): # If pacman is on or near the ghost
             if phase == 'f': # If in frightened mode
                 # if not ghost.is_dead:
                 #     time.sleep(1)
