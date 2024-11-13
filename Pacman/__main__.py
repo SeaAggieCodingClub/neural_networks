@@ -53,8 +53,6 @@ for _ in range(4):
     img = pygame.image.load("Pacman/images/target.png") # Load the image
     targets += [pygame.transform.scale(img, (35, 35))] # Scale the image and reference it back to the key
 
-
-
 # Set clock speed
 clock = pygame.time.Clock()
 
@@ -232,8 +230,6 @@ def update_pellets(pacman, grid, phase, scared_seconds):
 
     return phase, scared_seconds
 
-
-
 # Switches the ghost phase from chase to scatter and back again
 def phase_switch(phase, phase_rotation):
     if phase == 's':
@@ -276,31 +272,14 @@ def update_phase(values, ghosts, pacman, grid, fps):
             phase_seconds = 0 # Reset seconds
             Ghosts.update_phase_attributes(ghosts, phase, prev_phase) # Update ghosts
         
-        
     #print("Phase in", phase)
     return (phase, phase_rotation, level, phase_seconds, scared_seconds)
-
-# def update_pellets(pacman, grid, phase):
-#     # Pacman Eating Dots
-#     pos = pacman.pos.tile() # Centered position
-#     if 0 <= pos.x <= 27: # Check if indices are in range
-#         grid_value = grid[27 - pos.x, pos.y]
-#         if grid_value == 'dot_': # If position is on a dot
-#             grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
-#             Sound.play_waka(True) # Play sound
-#         elif grid[27 - pos.x, pos.y] == 'pdot':
-#             grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
-#             phase = 'f' # Change phase to frightened mode
-#             Sound.play_waka(True) # Play sound
-#         elif grid[27 - pos.x, pos.y] == '____':
-#             if not Sound.pygame.mixer.get_busy():
-#                 Sound.play_waka(False) # Stop sound
-#     return phase
 
 def __main__(grid_original):
     # Beginning variables for the whole game
     fps = 60 # Frames per second
     level = 1
+    score = 0
     
     pacman = Pacman(10.0 / fps) # Tiles per second / Frames per second = Tiles per frame
     
@@ -338,6 +317,8 @@ def __main__(grid_original):
                 Ghosts.Ghost('b', ghosts_speed, ""),
                 Ghosts.Ghost('o', ghosts_speed, "")
             ]
+            if pellets < 100:
+                ghosts[0].in_chase = True
             
             # Run
             prev_lives = pacman.lives
