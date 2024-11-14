@@ -45,9 +45,6 @@ images = {
     "pacman":"Pacman/images/pacman.png"
 }
 
-# pac = pygame.image.load("Pacman/images/pacman.png")
-# pacu = pygame.transform.scale(pac, (45,45))
-
 targets = []
 for _ in range(4):
     img = pygame.image.load("Pacman/images/target.png") # Load the image
@@ -236,19 +233,13 @@ def display_characters(pygame, pacman, ghosts):
     for ghost in ghosts:
         display(Ghosts.images["body"][ghost.id], ghost.pos)
         #display(images["eyes"], ghost.pos)
+        
+    # Display pacman
+    if not pacman.is_dead:
+        pacman.rotate_sprite()
+    if pacman.image != None:    
+        display(pacman.image, pacman.pos) # Display pacman
     
-    # Display pacman (facing the proper direction)
-    # match pacman.dir:
-    #     case 'w':
-    #         display(pygame.transform.rotate(pacu, 90), pacman.pos)
-    #     case 'a':
-    #         display(pygame.transform.rotate(pacu, 180), pacman.pos)
-    #     case 's':
-    #         display(pygame.transform.rotate(pacu, 270), pacman.pos)
-    #     case 'd':
-    #         display(pacu, pacman.pos)
-    pacman.rotate_sprite()
-    display(pacman.image, pacman.pos) # Display pacman
     # Display ghost targets
     for i in range(4):
          display(targets[i], ghosts[i].target) # Display the target for each ghost
@@ -400,11 +391,22 @@ def __main__(grid_original):
                     level += 1 # Increment level
                     print("Level Complete!")
                     break
-                
                 # Update display
                 display_characters(pygame, pacman, ghosts)
+                
+            # End of life
+            seconds = 0
+            while seconds < 2:
+                menu()
+                check_escape()
+                run_graph(grid, seconds)
+                pacman.change_animation()
+                display_characters(pygame, pacman, ghosts)
+                clock.tick(6)
+                seconds += 1 / 6
+           
             time.sleep(2) # Wait for level to start
-            pacman.reset_position()
+            pacman.respawn()
     pygame.quit()
 
 __main__(grid)
