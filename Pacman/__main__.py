@@ -402,8 +402,8 @@ def __main__(grid_original):
                 run_graph(grid, seconds)
                 pacman.change_animation()
                 display_characters(pygame, pacman, ghosts)
-                clock.tick(6)
-                seconds += 1 / 6
+                clock.tick(7)
+                seconds += 1 / 7
            
             time.sleep(2) # Wait for level to start
             pacman.respawn()
