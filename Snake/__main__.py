@@ -26,10 +26,20 @@ class FRUIT:
         self.randomize()
 
     def draw_fruit(self):
+        '''
         fruit_rect = pygame.Rect(int(self.pos.x * cell_size), int(self.pos.y * cell_size), cell_size, cell_size)
         screen.blit(apple, fruit_rect)
-        # pygame.draw.rect(screen, (126, 166, 114), fruit_rect)
+        # pygame.draw.rect(screen, (126, 166, 114), fruit_rect)  #fix later if needed
+        '''
+        fruit_rect = pygame.Rect(
+            int(self.pos.x * cell_size + cell_size / 4),
+            int(self.pos.y * cell_size + cell_size / 4),
+            cell_size // 2,
+            cell_size // 2
+        )
+        screen.blit(apple, fruit_rect)
 
+    
     def randomize(self):
         self.x = random.randint(0, cell_number - 1)
         self.y = random.randint(0, cell_number - 1)
@@ -65,7 +75,7 @@ snake_head_image = pygame.image.load('Snake/images/snake head.png').convert_alph
 snake_head_image = pygame.transform.scale(snake_head_image, (45,45))  # Resize image to 45x45 pixels more or less
 snake_head = snake_head_image
 snake_body_image = pygame.image.load('Snake/images/snake_body.png').convert_alpha()
-snake_body_image = pygame.transform.scale(snake_body_image,(45,45)) # accurately same size as head
+snake_body_image = pygame.transform.scale(snake_body_image,(45,25)) # accurately same size as head
 snake_body = snake_body_image
 #snake position
 snake_body = [(20, 20)]  # Initial position
@@ -136,6 +146,37 @@ def options():
 
         pygame.display.update()
         clock.tick(60)
+def create_grid(cell_number):
+    grid = {}
+    for x in range(cell_number):
+        for y in range(cell_number):
+            grid[(x, y)] = "empty"
+    return grid
+grid = create_grid(cell_number)
+
+def update_grid(grid, snake_body, apple_pos):
+    # Reset the grid
+    for key in grid:
+        grid[key] = "empty"
+    grid[(int(apple_pos.x), int(apple_pos.y))] = "apple"
+    for i, segment in enumerate(snake_body):
+        if i == 0:
+            grid[(segment[0] // cell_size, segment[1] // cell_size)] = "snake_head"
+        else:
+            grid[(segment[0] // cell_size, segment[1] // cell_size)] = "snake_body"
+
+def draw_grid(grid):
+    for (x, y), value in grid.items():
+        rect = pygame.Rect(x * cell_size, y * cell_size, cell_size, cell_size)
+        if value == "apple":
+            screen.blit(apple, rect)
+        elif value == "snake_head":
+            screen.blit(snake_head_image, rect)
+        elif value == "snake_body":
+            screen.blit(snake_body_image, rect)
+        else:  # Draw grid lines for better visibility
+            pygame.draw.rect(screen, (50, 50, 50), rect, 1)
+
 
 
 # Play screen
@@ -143,10 +184,13 @@ def play():
     global direction
 
     snake_body = [(100, 350)]  # Initial position
+    snake_directions = [direction]
     direction = (1, 0)
+    apple_pos = main_game.fruit.pos
 
     while True:
-        screen.fill((172, 206, 96))
+        #screen.fill((172, 206, 96)) #can be fixed later if messed up
+        screen.fill((0,0,0))
 
         for event in pygame.event.get():
             # Checks if the window is closed then terminates the program
@@ -165,7 +209,8 @@ def play():
                     direction = (-1, 0)
                 elif event.key == pygame.K_RIGHT and direction != (-1, 0):
                     direction = (1, 0)
-        angle = direction_of_snake[direction]
+        '''           just in case if we need it
+        angle = direction_of_snake[direction] 
         snake_head = pygame.transform.rotate(snake_head_image, angle)
 
         # Update snake position
@@ -181,7 +226,43 @@ def play():
             screen.blit(snake_head_image, segment)
             pygame.draw.rect(screen, (0, 255, 0), (*segment, cell_size, cell_size))
         
+        main_game.draw_elements() #can be fixed later if messed up
+        '''
+        new_head = (snake_body[0][0] + direction[0] * cell_size, snake_body[0][1] + direction[1] * cell_size)
+        if (new_head[0] < 0 or new_head[0] >= screen_width or
+            new_head[1] < 0 or new_head[1] >= screen_height):
+            break
+
+        #check for collisions
+        if (new_head[0] // cell_size, new_head[1] // cell_size) in [
+            (segment[0] // cell_size, segment[1] // cell_size) for segment in snake_body[1:]]:
+            break
+
+        # Check for apple collision
+        if new_head[0] // cell_size == apple_pos.x and new_head[1] // cell_size == apple_pos.y:
+            snake_body.append(snake_body[-1])  # Grow the snake
+            snake_directions.append(snake_directions[-1])
+            main_game.fruit.randomize()  # Move the apple
+            apple_pos = main_game.fruit.pos
+        else:
+            # Move the snake: new head, followed by all other segments
+            snake_body = [new_head] + snake_body[:-1]
+            snake_directions = [direction] + snake_directions[:-1]
+
+        # Draw the snake
+        for i, segment in enumerate(snake_body):
+            if i == 0:  # Head
+                angle = direction_of_snake[snake_directions[i]]
+                snake_head_rotated = pygame.transform.rotate(snake_head_image, angle)
+                screen.blit(snake_head_rotated, segment)
+            else:  # Body
+                angle = direction_of_snake[snake_directions[i]]
+                snake_body_rotated = pygame.transform.rotate(snake_body_image,angle)
+                screen.blit(snake_body_rotated, segment)
+
+        # Draw the apple
         main_game.draw_elements()
+
         pygame.display.update()
         
         # Frame rate
