@@ -5,6 +5,7 @@ import random
 from button import Button
 from pygame.math import Vector2
 
+
 class MAIN:
     def __init__(self):
         self.fruit = FRUIT()
