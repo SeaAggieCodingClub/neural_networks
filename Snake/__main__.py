@@ -189,8 +189,8 @@ def play():
     apple_pos = main_game.fruit.pos
 
     while True:
-        #screen.fill((172, 206, 96)) #can be fixed later if messed up
-        screen.fill((0,0,0))
+        screen.fill((172, 206, 96)) 
+        #screen.fill((0,0,0))
 
         for event in pygame.event.get():
             # Checks if the window is closed then terminates the program
