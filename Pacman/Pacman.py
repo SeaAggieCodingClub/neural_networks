@@ -5,6 +5,7 @@ import Sound
 
 class Pacman(Character):
     lives = 3
+    score = 0
     pause = False # Each dot Pac-Man eats causes him to stop moving for one frame or 1/60th of a second
     current_sprite = "move"
     current_sprite_index = 0

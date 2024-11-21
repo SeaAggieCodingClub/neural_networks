@@ -268,7 +268,7 @@ def get_pellets(grid):
     return sum
 
 # Updates the phases and sounds associated with eating pellets
-def update_pellets(pacman, grid, phase, scared_seconds, score):
+def update_pellets(pacman, grid, phase, scared_seconds):
     # Pacman Eating Dots
     pos = pacman.pos.tile() # Centered position
     if 0 <= pos.x <= 27: # Check if indices are in range
@@ -278,11 +278,13 @@ def update_pellets(pacman, grid, phase, scared_seconds, score):
             grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
             pacman.pause = True
             Sound.play_waka(True) # Play sound
-            score += 1
+            pacman.score += 10
         if grid_value == 'pdot':
             phase = 'f' # Change phase to frightened mode
+            scared_seconds = 0
+            pacman.score += 40
 
-    return phase, scared_seconds, score
+    return phase, scared_seconds
 
 # Switches the ghost phase from chase to scatter and back again
 def phase_switch(phase, phase_rotation):
@@ -295,10 +297,10 @@ def phase_switch(phase, phase_rotation):
 
 # Updates the ghosts attributes according to each phase
 def update_phase(values, ghosts, pacman, grid, fps):
-    (phase, phase_rotation, level, phase_seconds, scared_seconds, score) = values # Store in tuple for a pass by reference
+    (phase, phase_rotation, level, phase_seconds, scared_seconds) = values # Store in tuple for a pass by reference
     
     prev_phase = phase # Hold variable
-    phase, scared_seconds, score = update_pellets(pacman, grid, phase, scared_seconds, score) # Check pellets
+    phase, scared_seconds = update_pellets(pacman, grid, phase, scared_seconds) # Check pellets
     
     if phase == 'f': # If phase has changed
         if phase != prev_phase:
@@ -307,10 +309,11 @@ def update_phase(values, ghosts, pacman, grid, fps):
             # Change ghost images to blue
         
         scared_seconds += 1 / fps # Increment timer
-        if scared_seconds > 8: # CHANGE VALUE
+        if scared_seconds > Ghosts.scared_time(level): # CHANGE VALUE
             prev_phase = 'f'
             phase = 'c'
             scared_seconds = 0
+            Ghosts.Ghost.consec_eaten = 0
             Ghosts.update_phase_attributes(ghosts, phase, prev_phase) # Update ghosts
             # Change ghost images back to normal
     elif phase_rotation <= 4: # Only for 4 rotations 
@@ -327,14 +330,13 @@ def update_phase(values, ghosts, pacman, grid, fps):
             Ghosts.update_phase_attributes(ghosts, phase, prev_phase) # Update ghosts
         
     #print("Phase in", phase)
-    return (phase, phase_rotation, level, phase_seconds, scared_seconds, score)
+    return (phase, phase_rotation, level, phase_seconds, scared_seconds)
 
 
 def __main__(grid_original):
     # Beginning variables for the whole game
     fps = 60 # Frames per second
     level = 1
-    score = 0
     
     pacman = Pacman(10.0 / fps) # Tiles per second / Frames per second = Tiles per frame
     speed_pacman = pacman.base_speed * 0.80
@@ -387,7 +389,7 @@ def __main__(grid_original):
                 
                 # Draw menu and check for escape
                 menu()
-                check_escape(score)
+                check_escape(pacman.score)
                 run_graph(grid, seconds)
                 clock.tick(fps) # Cap the frame rate
                 
@@ -398,8 +400,8 @@ def __main__(grid_original):
                 
                 # Update board
                 seconds += 1 / fps # Increment timer
-                phase_values = update_phase((phase, phase_rotation, level, phase_seconds, scared_seconds, score), ghosts, pacman, grid, fps)
-                phase, phase_rotation, level, phase_seconds, scared_seconds, score = phase_values
+                phase_values = update_phase((phase, phase_rotation, level, phase_seconds, scared_seconds), ghosts, pacman, grid, fps)
+                phase, phase_rotation, level, phase_seconds, scared_seconds = phase_values
                 pellets = get_pellets(grid)
                 if pellets == 0:
                     level += 1 # Increment level
@@ -407,13 +409,13 @@ def __main__(grid_original):
                     break
                 # Update display
                 display_characters(pygame, pacman, ghosts)
-                print(score)
+                print(pacman.score)
             
             # End of life
             seconds = 0
             while seconds < 2:
                 menu()
-                check_escape()
+                check_escape(pacman.score)
                 run_graph(grid, seconds)
                 pacman.change_animation()
                 display_characters(pygame, pacman, ghosts)
@@ -423,7 +425,7 @@ def __main__(grid_original):
             time.sleep(2) # Wait for level to start
             pacman.respawn()
     
-    update_high_score(score)
+    update_high_score(pacman.score)
     pygame.quit()
 
 __main__(grid)

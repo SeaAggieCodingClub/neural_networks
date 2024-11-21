@@ -69,6 +69,23 @@ images = {
     "scared":"Pacman/images/ghost_scared.png"
 }
 
+# The points received after each ghost eaten in sequence
+consec_points = [
+    0,
+    200,
+    400,
+    800,
+    1600,
+    0,
+    0,
+    0,
+    0
+]
+
+def scared_time(level):
+    scared_time = [0, 6, 5, 4, 3, 2, 5, 2, 2, 1, 5, 2, 1, 1, 3, 1, 1, 0, 1, 0, 0, 0,]
+    return 0 if level > 21 else scared_time[level]
+
 # Convert image urls to pygame objects
 for k, image in images["body"].items(): # Body images
     img = pygame.image.load(image) # Load the image
@@ -82,6 +99,7 @@ class Ghost(Character):
     target = None
     scatter_target = None
     was_on_decision_tile = False
+    consec_eaten = 0
     
     # For pink
     blush_timer = 0
@@ -232,7 +250,6 @@ class Ghost(Character):
         self.is_dead = True
         self.image = None
         self.target = Position(13.5, 14)
-        # self.speed *= 10 # Tiles per second
     
     def revive(self):
         self.is_dead = False
@@ -409,6 +426,8 @@ def update_ghosts(ghosts, pacman, level, grid, phase, fps, seconds, pellets):
                 # if not ghost.is_dead:
                 #     time.sleep(1)
                 ghost.kill()
+                Ghost.consec_eaten += 1
+                pacman.score += consec_points[Ghost.consec_eaten] # Add to score
                 print("KILLED GHOST", ghost.id)
             else:
                 pacman.kill()
