@@ -54,17 +54,6 @@ scatter_targets = {
     'o':Position(27, 29)
 }
 
-images = {
-    "body":{
-        'r':"Pacman/images/ghosts/blinky.png",
-        'p':"Pacman/images/ghosts/pinky.png",
-        'b':"Pacman/images/ghosts/inky.png",
-        'o':"Pacman/images/ghosts/clyde.png"
-    },
-    "eyes":"Pacman/images/ghost_eyes.png",
-    "scared":"Pacman/images/ghost_scared.png"
-}
-
 # The points received after each ghost eaten in sequence
 consec_points = [
     0,
@@ -78,66 +67,22 @@ consec_points = [
     0
 ]
 
-def get_move_loc(id, dir, index=0):
-    '''
-    Returns the location of the moving sprite on sprites_sheet.png 
-    '''
-    
-    x = {
-        'w':4,
-        'a':2,
-        's':6,
-        'd':0
-    }
-    
-    y = {
-        'r':4,
-        'p':5,
-        'b':6,
-        'o':7
-    }
-    # print("Loc is (dir:", dir, ", id:", id, ")", (x[dir] + index, y[id]))
-    return (x[dir] + index, y[id])
-
-def get_eyes_loc(dir):
-    '''
-    Returns the location of the eyes sprite on sprites_sheet.png 
-    '''
-    
-    y = 5
-    
-    x = {
-        'w':10,
-        'a':9,
-        's':11,
-        'd':8
-    }
-    
-    return (x[dir], y)
-
-def get_blue_loc(flash, index=0):
-    '''
-    Returns the location of the blue (scared) sprite on sprites_sheet.png 
-    '''
-    
-    x = 10 if flash else 8
-    y = 4
-    
-    return (x + index, y)
-
 def scared_time(level):
     scared_time = [0, 6, 5, 4, 3, 2, 5, 2, 2, 1, 5, 2, 1, 1, 3, 1, 1, 0, 1, 0, 0, 0,]
     return 0 if level > 21 else scared_time[level]
 
 class Ghost(Character):
-    sprites = None
-    image = None
     target = None
     scatter_target = None
     was_on_decision_tile = False
     consec_eaten = 0
-    flash = 0
+    override_frightened = False
+    
+    sprites = None
+    image = None
     image_index = 0
+    flash = 0
+    scared_seconds = 0
     
     # For pink
     blush_timer = 0
@@ -151,7 +96,7 @@ class Ghost(Character):
         self.pos = copy.deepcopy(starting_positions[id])
         self.dir = starting_directions[id]
         self.speed = self.base_speed = speed
-        self.flash = 0
+        
         self.image_index = 0
         self.sprites = { # Contains pygame images of each type
             "move":{},
@@ -159,9 +104,11 @@ class Ghost(Character):
             "blue":{}
         }
         
+        Ghost.scared_seconds = 0
         self.target = Position(0, 0)
         self.scatter_target = scatter_targets[id]
         self.is_active = id == 'r' # Only start with red active
+        self.override_frightened = False
         self.fill_sprites()
     
     def fill_sprites(self):
@@ -194,11 +141,11 @@ class Ghost(Character):
             # Add moving sprites to dictionary
             self.sprites["move"][dir] = []
             for index in range(2): # Only 2 animation types
-                img = sprites.get_image(get_move_loc(self.id, dir, index))
+                img = sprites.get_image("move", id=self.id, dir=dir, index=index)
                 self.sprites["move"][dir].append(img)
             
             # Add eyes sprites to dictionary
-            img = sprites.get_image(get_eyes_loc(dir))
+            img = sprites.get_image("eyes", dir=dir)
             self.sprites["eyes"][dir] = img
         
         # Add blue sprites to dictionary
@@ -206,7 +153,7 @@ class Ghost(Character):
         for flash in range(2): # Only flashing on or off (1 or 0)
             self.sprites["blue"].append([])
             for index in range(2): # Only 2 animation types
-                img = sprites.get_image(get_blue_loc(flash, index))
+                img = sprites.get_image("blue", flash=flash, index=index)
                 self.sprites["blue"][flash].append(img)
         
         # Starting image
@@ -215,8 +162,8 @@ class Ghost(Character):
     def change_animation(self, phase, seconds):
         if self.is_dead:
             image = self.sprites["eyes"][self.dir]
-        elif phase == 'f':
-            image = self.sprites["blue"][self.flash][self.image_index]
+        elif phase == 'f' and not self.override_frightened:
+            image = self.sprites["blue"][Ghost.flash][self.image_index]
         else:
             image = self.sprites["move"][self.dir][self.image_index]
         
@@ -323,8 +270,6 @@ class Ghost(Character):
             distance = self.target_distance(choice[0])
             if distance < min[0]: # If distance is less than min value
                 min = [distance, choice[1]] # Set to min
-        #print(choices, min[1])
-        
         
         return min[1] # Return the direction
     
@@ -361,11 +306,12 @@ class Ghost(Character):
         self.image = None
         self.target = Position(13.5, 14)
     
-    def revive(self):
+    def revive(self, phase):
         self.is_dead = False
         self.image = None # CHANGE TO NORMAL GHOST IMAGE
         self.move(1) # Move a bit further into the house for effect
         self.turn('w')
+        self.override_frightened = phase == 'f'
         # self.speed = self.base_speed # Return to normal speed
     
 # Sets the target for each individual ghost based on their personality
@@ -423,7 +369,7 @@ def update_phase_attributes(ghosts, phase, prev_phase):
                 ghost.speed = ghost.base_speed
         case 'f': # Frightened
             for ghost in ghosts:
-                ghost.speed = ghost.base_speed / 2
+                ghost.speed = ghost.base_speed * 0.70
 
 def update_personalities(ghosts, pacman, fps, pellets):
     # red ghost should speed up after x number of pellets gone, and permanently be in chase mode
@@ -532,21 +478,21 @@ def update_ghosts(ghosts, pacman, level, grid, phase, fps, seconds, pellets):
         # Check for death
         pos = ghost.pos.tile()
         if pos.equals(pacman.pos.tile()) or pos.equals(pacman.movep(0.5, pacman.dir).tile()): # If pacman is on or near the ghost
-            if phase == 'f': # If in frightened mode
-                if not ghost.is_dead:
-                    #time.sleep(1)
-                    Ghost.consec_eaten += 1
-                    pacman.score += consec_points[Ghost.consec_eaten] # Add to score
-                    ghost.kill()
-                    print("KILLED GHOST", ghost.id)
-            else:
-                pacman.kill()
-                print("KILLED PACMAN", pacman.lives)
-                return
+            if not ghost.is_dead:
+                if phase == 'f': # If in frightened mode
+                        #time.sleep(1)
+                        Ghost.consec_eaten += 1
+                        pacman.score += consec_points[Ghost.consec_eaten] # Add to score
+                        ghost.kill()
+                        print("KILLED GHOST", ghost.id)
+                else:
+                    pacman.kill()
+                    print("KILLED PACMAN", pacman.lives)
+                    return
         if ghost.is_active:
             if ghost.is_in_house(): # If the ghost is waiting to exit the house
                 if ghost.is_dead:
-                    ghost.revive()
+                    ghost.revive(phase)
                 move_exit_house(ghost)
             elif ghost.is_dead: # If the ghost has died, return to house
                 move_return_to_house(ghost, grid, phase)
@@ -555,7 +501,9 @@ def update_ghosts(ghosts, pacman, level, grid, phase, fps, seconds, pellets):
                     ghost.target = Position(14, 11) # ghost.dir = 'a'
                 move_normal(ghosts, ghost, pacman, grid, phase)
         else:
-            ghost.move(ghost.base_speed)
-            if ghost.check_wall(ghost.dir, grid):
+            ghost.move(ghost.base_speed * 0.6)
+            #if ghost.check_wall(ghost.dir, grid):
+            pos = ghost.movep(1, ghost.dir).tile() # Store the tile pos
+            if 0 <= pos.x <= 27 and grid[pos.x, pos.y] == 'wall': # Check if pos is a wall
                 ghost.turn_around()
             try_exit(ghosts, level, seconds, pellets)

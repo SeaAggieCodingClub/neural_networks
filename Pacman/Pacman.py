@@ -1,5 +1,6 @@
 from Character import *
 from Position import *
+from Sprites import *
 import copy
 import Sound
 
@@ -18,24 +19,35 @@ class Pacman(Character):
         self.speed = self.base_speed = speed
         self.pos = Position(13.5, 23)
         self.dir = 'a'
+        self.fill_sprites()
+    
+    def fill_sprites(self):
+        '''
+        Fill the sprites dictionary
+        
+        Desired Structure:
+        sprites = {
+            "move":[X, X, X],
+            "death":[X, X, ... , X]]
+        }
+        '''
         
         # Add moving sprites to dictionary
+        sprites = PacmanSprites()
         self.sprites["move"] = []
-        for i in range(1, 4):
-            img = pygame.image.load("Pacman/images/pacman/pacman_move_" + str(i) + ".png")
-            img = pygame.transform.scale(img, (38, 38))
+        for index in range(3):
+            img = sprites.get_image("move", index)
             self.sprites["move"].append(img)
         
         # Add death sprites to dictionary
         self.sprites["death"] = []
-        for i in range(1, 12):
-            img = pygame.image.load("Pacman/images/pacman/pacman_death_" + str(i) + ".png")
-            img = pygame.transform.scale(img, (38, 38))
+        for index in range(11):
+            img = sprites.get_image("death", index)
             self.sprites["death"].append(img)
-            
-        self.image = self.sprites["move"][0]
-
         
+        self.image = self.sprites["move"][0]
+    
+    
     def kill(self):
         self.is_dead = True
         self.current_sprite = "death"
@@ -94,13 +106,13 @@ class Pacman(Character):
     def rotate_sprite(self):
         self.image = self.sprites[self.current_sprite][self.current_sprite_index]
         if self.dir == 'w':
-            self.image = pygame.transform.rotate(self.image, 90)
-        elif self.dir == 's':
-            self.image = pygame.transform.rotate(self.image, 270)
-        elif self.dir == 'd':
             self.image = pygame.transform.rotate(self.image, 0)
-        elif self.dir == 'a':
+        elif self.dir == 's':
             self.image = pygame.transform.rotate(self.image, 180)
+        elif self.dir == 'd':
+            self.image = pygame.transform.rotate(self.image, 270)
+        elif self.dir == 'a':
+            self.image = pygame.transform.rotate(self.image, 90)
             
     # Changes the direction of pacman from the keyboard input, if move is invalid returns the next move 
     def control_pacman(self, next_move, grid):

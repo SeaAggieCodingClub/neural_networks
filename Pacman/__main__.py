@@ -2,6 +2,7 @@ import pygame
 import time
 import os
 import random
+from Ghosts import Ghost
 import Ghosts
 import Pacman
 import Sound
@@ -196,7 +197,7 @@ def start_menu(speed_pacman, speed_ghosts, speed_ghosts_frightened):
     pygame.display.flip()
 
     #pygame.time.wait(3000) # wait 3 secs as a placeholder for the ghost animation at the start
-    
+
 def find_cordinates(x,y):
     px = (18*x) + 250
     py = (18*y)+ -20
@@ -252,7 +253,7 @@ def get_pellets(grid):
     return sum
 
 # Updates the phases and sounds associated with eating pellets
-def update_pellets(pacman, grid, phase, scared_seconds):
+def update_pellets(pacman, grid, phase):
     # Pacman Eating Dots
     pos = pacman.pos.tile() # Centered position
     if 0 <= pos.x <= 27: # Check if indices are in range
@@ -265,10 +266,10 @@ def update_pellets(pacman, grid, phase, scared_seconds):
             pacman.score += 10
         if grid_value == 'pdot':
             phase = 'f' # Change phase to frightened mode
-            scared_seconds = 0
+            Ghost.scared_seconds = 0
             pacman.score += 40
 
-    return phase, scared_seconds
+    return phase
 
 # Switches the ghost phase from chase to scatter and back again
 def phase_switch(phase, phase_rotation):
@@ -281,25 +282,32 @@ def phase_switch(phase, phase_rotation):
 
 # Updates the ghosts attributes according to each phase
 def update_phase(values, ghosts, pacman, grid, fps):
-    (phase, phase_rotation, level, phase_seconds, scared_seconds) = values # Store in tuple for a pass by reference
+    (phase, phase_rotation, level, phase_seconds) = values # Store in tuple for a pass by reference
     
     prev_phase = phase # Hold variable
-    phase, scared_seconds = update_pellets(pacman, grid, phase, scared_seconds) # Check pellets
+    phase = update_pellets(pacman, grid, phase) # Check pellets
     
-    if phase == 'f': # If phase has changed
-        if phase != prev_phase:
-            print("In Frightened Phase!")
+    if phase == 'f':
+        if phase != prev_phase: # If phase has changed
             Ghosts.update_phase_attributes(ghosts, phase, prev_phase) # Update ghosts
-            # Change ghost images to blue
         
-        scared_seconds += 1 / fps # Increment timer
-        if scared_seconds > Ghosts.scared_time(level): # CHANGE VALUE
+        time = Ghosts.scared_time(level)
+        if Ghost.scared_seconds < 0.1: # When eating a new power pellet
+            for ghost in ghosts:
+                ghost.override_frightened = False
+        for fi in range(1, 10):
+            flash_length = 0.33
+            if abs(Ghost.scared_seconds - (time - flash_length * 10 + fi * flash_length)) < 1 / fps / 2:
+                Ghost.flash = not Ghost.flash # Toggle flash
+                
+        
+        Ghost.scared_seconds += 1 / fps # Increment timer
+        if Ghost.scared_seconds > time:
             prev_phase = 'f'
             phase = 'c'
-            scared_seconds = 0
-            Ghosts.Ghost.consec_eaten = 0
+            Ghost.scared_seconds = 0
+            Ghost.consec_eaten = 0
             Ghosts.update_phase_attributes(ghosts, phase, prev_phase) # Update ghosts
-            # Change ghost images back to normal
     elif phase_rotation <= 4: # Only for 4 rotations 
         # Phase timer
         phase_seconds += 1 / fps # Increment timer
@@ -312,10 +320,8 @@ def update_phase(values, ghosts, pacman, grid, fps):
         if phase != prev_phase: # If the phase has changed
             phase_seconds = 0 # Reset seconds
             Ghosts.update_phase_attributes(ghosts, phase, prev_phase) # Update ghosts
-        
-    #print("Phase in", phase)
-    return (phase, phase_rotation, level, phase_seconds, scared_seconds)
-
+    
+    return (phase, phase_rotation, level, phase_seconds)
 
 def __main__(grid_original):
     # Beginning variables for the whole game
@@ -354,14 +360,14 @@ def __main__(grid_original):
             # Variables for each life
             phase = 's' # Begin in scatter mode
             next_move = None
-            seconds = phase_seconds = scared_seconds = phase_rotation = 0
+            seconds = phase_seconds = phase_rotation = 0
             fruit = Fruit(level)
             Fruit.is_active = True
             ghosts = [
-                Ghosts.Ghost('r', ghosts_speed),
-                Ghosts.Ghost('p', ghosts_speed),
-                Ghosts.Ghost('b', ghosts_speed),
-                Ghosts.Ghost('o', ghosts_speed)
+                Ghost('r', ghosts_speed),
+                Ghost('p', ghosts_speed),
+                Ghost('b', ghosts_speed),
+                Ghost('o', ghosts_speed)
             ]
             if pellets < 100:
                 ghosts[0].in_chase = True
@@ -387,8 +393,8 @@ def __main__(grid_original):
                 
                 # Update board
                 seconds += 1 / fps # Increment timer
-                phase_values = update_phase((phase, phase_rotation, level, phase_seconds, scared_seconds), ghosts, pacman, grid, fps)
-                phase, phase_rotation, level, phase_seconds, scared_seconds = phase_values
+                phase_values = update_phase((phase, phase_rotation, level, phase_seconds), ghosts, pacman, grid, fps)
+                phase, phase_rotation, level, phase_seconds = phase_values
                 pellets = get_pellets(grid)
                 if pellets == 0:
                     level += 1 # Increment level
@@ -404,7 +410,6 @@ def __main__(grid_original):
                 # Update display
                 if fruit is not None and Fruit.is_active:
                     display(fruit.image, fruit.pos)
-                    #screen.blit(fruit.image.get_image(0, 0), (200, 200))
                 display_characters(pygame, pacman, ghosts, phase, seconds)
                 # print(pacman.score)
             
