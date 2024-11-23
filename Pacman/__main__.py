@@ -290,11 +290,13 @@ def update_phase(values, ghosts, pacman, grid, fps):
     if phase == 'f':
         if phase != prev_phase: # If phase has changed
             Ghosts.update_phase_attributes(ghosts, phase, prev_phase) # Update ghosts
+            Ghost.flash = False
         
         time = Ghosts.scared_time(level)
         if Ghost.scared_seconds < 0.1: # When eating a new power pellet
             for ghost in ghosts:
                 ghost.override_frightened = False
+                Ghost.flash = False
         for fi in range(1, 10):
             flash_length = 0.33
             if abs(Ghost.scared_seconds - (time - flash_length * 10 + fi * flash_length)) < 1 / fps / 2:
