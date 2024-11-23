@@ -5,8 +5,10 @@ import Sound
 
 class Pacman(Character):
     lives = 3
+    extra_lives = 0
     score = 0
     pause = False # Each dot Pac-Man eats causes him to stop moving for one frame or 1/60th of a second
+    
     current_sprite = "move"
     current_sprite_index = 0
     current_sprite_buffer = 0
@@ -17,19 +19,19 @@ class Pacman(Character):
         self.pos = Position(13.5, 23)
         self.dir = 'a'
         
-        # Adds moving sprites to dictionary
+        # Add moving sprites to dictionary
         self.sprites["move"] = []
-        for i in range (1, 4):
-            temp = pygame.image.load("Pacman/images/pacman/pacman_move_" + str(i) + ".png")
-            temp = pygame.transform.scale(temp, (38, 38))
-            self.sprites["move"].append(temp)
+        for i in range(1, 4):
+            img = pygame.image.load("Pacman/images/pacman/pacman_move_" + str(i) + ".png")
+            img = pygame.transform.scale(img, (38, 38))
+            self.sprites["move"].append(img)
         
-        # Adds death sprites to dictionary
+        # Add death sprites to dictionary
         self.sprites["death"] = []
-        for i in range (1, 12):
-            temp = pygame.image.load("Pacman/images/pacman/pacman_death_" + str(i) + ".png")
-            temp = pygame.transform.scale(temp, (38, 38))
-            self.sprites["death"].append(temp)
+        for i in range(1, 12):
+            img = pygame.image.load("Pacman/images/pacman/pacman_death_" + str(i) + ".png")
+            img = pygame.transform.scale(img, (38, 38))
+            self.sprites["death"].append(img)
             
         self.image = self.sprites["move"][0]
 
@@ -50,6 +52,7 @@ class Pacman(Character):
         self.sprite_buffer_max = 2
         self.current_sprite_buffer = 0
         self.reset_position()
+        self.dir = 'a'
         
     def reset_position(self):
         self.pos = Position(13.5, 23)

@@ -2,14 +2,19 @@
     "cSpell.words": [
         "BLINKY",
         "blit",
+        "colorkey",
         "consec",
         "cordinates",
+        "despawn",
         "emulogic",
         "Emulogic",
+        "galaxian",
         "pacu",
         "pdot",
         "pygame",
         "respawn",
+        "Spritesheet",
+        "transcolor",
         "waka"
     ]
 }

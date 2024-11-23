@@ -1,5 +1,6 @@
 from Position import *
 from Character import *
+from Sprites import *
 import copy
 import random
 import math
@@ -53,17 +54,12 @@ scatter_targets = {
     'o':Position(27, 29)
 }
 
-# Phases: Chase ('c'), Scatter ('s'), Frightened ('f')
-# Ghosts: Red ('r'), Pink ('p'), Blue ('b'), Orange ('o')
-# Directions: 'w', 'a', 's', 'd'
-
 images = {
     "body":{
-        'r':"Pacman/images/ghost_red.png",
-        'p':"Pacman/images/ghost_pink.png",
-        'b':"Pacman/images/ghost_blue.png",
-        'o':"Pacman/images/ghost_orange.png"
-        #"pacman":"Pacman/images/pacman.png"
+        'r':"Pacman/images/ghosts/blinky.png",
+        'p':"Pacman/images/ghosts/pinky.png",
+        'b':"Pacman/images/ghosts/inky.png",
+        'o':"Pacman/images/ghosts/clyde.png"
     },
     "eyes":"Pacman/images/ghost_eyes.png",
     "scared":"Pacman/images/ghost_scared.png"
@@ -82,24 +78,66 @@ consec_points = [
     0
 ]
 
+def get_move_loc(id, dir, index=0):
+    '''
+    Returns the location of the moving sprite on sprites_sheet.png 
+    '''
+    
+    x = {
+        'w':4,
+        'a':2,
+        's':6,
+        'd':0
+    }
+    
+    y = {
+        'r':4,
+        'p':5,
+        'b':6,
+        'o':7
+    }
+    # print("Loc is (dir:", dir, ", id:", id, ")", (x[dir] + index, y[id]))
+    return (x[dir] + index, y[id])
+
+def get_eyes_loc(dir):
+    '''
+    Returns the location of the eyes sprite on sprites_sheet.png 
+    '''
+    
+    y = 5
+    
+    x = {
+        'w':10,
+        'a':9,
+        's':11,
+        'd':8
+    }
+    
+    return (x[dir], y)
+
+def get_blue_loc(flash, index=0):
+    '''
+    Returns the location of the blue (scared) sprite on sprites_sheet.png 
+    '''
+    
+    x = 10 if flash else 8
+    y = 4
+    
+    return (x + index, y)
+
 def scared_time(level):
     scared_time = [0, 6, 5, 4, 3, 2, 5, 2, 2, 1, 5, 2, 1, 1, 3, 1, 1, 0, 1, 0, 0, 0,]
     return 0 if level > 21 else scared_time[level]
 
-# Convert image urls to pygame objects
-for k, image in images["body"].items(): # Body images
-    img = pygame.image.load(image) # Load the image
-    images["body"][k] = pygame.transform.scale(img, (35, 35)) # Scale the image and reference it back to the key
-# for k, image in images.items(): # Other images
-#     img = pygame.image.load(image) # Load the image
-#     images[k] = pygame.transform.scale(img, (35, 35)) # Scale the image and reference it back to the key
-
 class Ghost(Character):
-    image_eyes = None
+    sprites = None
+    image = None
     target = None
     scatter_target = None
     was_on_decision_tile = False
     consec_eaten = 0
+    flash = 0
+    image_index = 0
     
     # For pink
     blush_timer = 0
@@ -108,16 +146,88 @@ class Ghost(Character):
     # For red
     in_chase = False
     
-    def __init__(self, id, speed, image_eyes):
-        # print(f"{i.x} {i.y}" for i in starting_positions)
+    def __init__(self, id, speed):
         self.id = id
         self.pos = copy.deepcopy(starting_positions[id])
         self.dir = starting_directions[id]
         self.speed = self.base_speed = speed
-        self.image_eyes = image_eyes
+        self.flash = 0
+        self.image_index = 0
+        self.sprites = { # Contains pygame images of each type
+            "move":{},
+            "eyes":{},
+            "blue":{}
+        }
+        
         self.target = Position(0, 0)
         self.scatter_target = scatter_targets[id]
         self.is_active = id == 'r' # Only start with red active
+        self.fill_sprites()
+    
+    def fill_sprites(self):
+        '''
+        Fill the sprites dictionary
+        
+        Desired Structure:
+        sprites = {
+            "move":{
+                'w':[X, X],
+                'a':[X, X],
+                's':[X, X],
+                'd':[X, X]
+            },
+            "eyes":{
+                'w':X,
+                'a':X,
+                's':X,
+                'd':X
+            },
+            "blue":[
+                [X, X], # Not Flashing
+                [X, X]  # Flashing
+            ]
+        }
+        '''
+        
+        sprites = GhostSprites()
+        for dir in ['w', 'a', 's', 'd']:
+            # Add moving sprites to dictionary
+            self.sprites["move"][dir] = []
+            for index in range(2): # Only 2 animation types
+                img = sprites.get_image(get_move_loc(self.id, dir, index))
+                self.sprites["move"][dir].append(img)
+            
+            # Add eyes sprites to dictionary
+            img = sprites.get_image(get_eyes_loc(dir))
+            self.sprites["eyes"][dir] = img
+        
+        # Add blue sprites to dictionary
+        self.sprites["blue"] = []
+        for flash in range(2): # Only flashing on or off (1 or 0)
+            self.sprites["blue"].append([])
+            for index in range(2): # Only 2 animation types
+                img = sprites.get_image(get_blue_loc(flash, index))
+                self.sprites["blue"][flash].append(img)
+        
+        # Starting image
+        self.image = self.sprites["move"][self.dir][0]
+    
+    def change_animation(self, phase, seconds):
+        if self.is_dead:
+            image = self.sprites["eyes"][self.dir]
+        elif phase == 'f':
+            image = self.sprites["blue"][self.flash][self.image_index]
+        else:
+            image = self.sprites["move"][self.dir][self.image_index]
+        
+        # Change animation index
+        wiggles_per_tick = 0.2
+        tol = 0.03 # Within one tick
+        if seconds % wiggles_per_tick < tol:
+            self.image_index = (self.image_index + 1) % 2
+        
+        self.image = image
+        return image
     
     # If the current position matches a decision tile, only run once per decision tile
     def is_on_decision_tile(self, decision_tiles):
@@ -387,7 +497,7 @@ def move_return_to_house(ghost, grid, phase):
         else: # Ghost is in warp tunnel
             # Turn around
             ghost.turn_around()
-    ghost.move(.5) # Move at higher speed
+    ghost.move(.3) # Move at higher speed
 
 # Run normal updates: decision tile check, wall check, movement
 def move_normal(ghosts, ghost, pacman, grid, phase):
@@ -423,12 +533,12 @@ def update_ghosts(ghosts, pacman, level, grid, phase, fps, seconds, pellets):
         pos = ghost.pos.tile()
         if pos.equals(pacman.pos.tile()) or pos.equals(pacman.movep(0.5, pacman.dir).tile()): # If pacman is on or near the ghost
             if phase == 'f': # If in frightened mode
-                # if not ghost.is_dead:
-                #     time.sleep(1)
-                ghost.kill()
-                Ghost.consec_eaten += 1
-                pacman.score += consec_points[Ghost.consec_eaten] # Add to score
-                print("KILLED GHOST", ghost.id)
+                if not ghost.is_dead:
+                    #time.sleep(1)
+                    Ghost.consec_eaten += 1
+                    pacman.score += consec_points[Ghost.consec_eaten] # Add to score
+                    ghost.kill()
+                    print("KILLED GHOST", ghost.id)
             else:
                 pacman.kill()
                 print("KILLED PACMAN", pacman.lives)

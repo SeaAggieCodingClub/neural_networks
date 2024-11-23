@@ -8,6 +8,7 @@ import Sound
 from Position import *
 import copy
 from Pacman import Pacman
+from Fruit import Fruit, update_fruit
 pygame.init()
 
 
@@ -33,22 +34,7 @@ pygame.display.set_caption('Pacman')
 # Images
 background = pygame.image.load("Pacman/images/background.png")
 dot_ = pygame.image.load("Pacman/images/dot.png")
-# pdot = pygame.image.load("Pacman/images/pdot.png")
 pdot = pygame.transform.scale(dot_, (40, 40))
-#wall = pygame.image.load("Pacman/images/wall.png")
-
-images = {
-    'r':"Pacman/images/ghost_red.png",
-    'p':"Pacman/images/ghost_pink.png",
-    'b':"Pacman/images/ghost_blue.png",
-    'o':"Pacman/images/ghost_orange.png",
-    "pacman":"Pacman/images/pacman.png"
-}
-
-targets = []
-for _ in range(4):
-    img = pygame.image.load("Pacman/images/target.png") # Load the image
-    targets += [pygame.transform.scale(img, (35, 35))] # Scale the image and reference it back to the key
 
 # Set clock speed
 clock = pygame.time.Clock()
@@ -163,21 +149,23 @@ def menu():
 
 def start_menu(speed_pacman, speed_ghosts, speed_ghosts_frightened):
     # doesn't use any of the speeds yet, but it will once I add the sequence with the ghosts chasing/getting chased by pacman later
-    
+    return
     # Set up the screen for the start menu
     screen.fill(black)
-
+    
     # Font for text
     font = pygame.font.Font("Pacman/fonts/emulogic-font/Emulogic-zrEw.ttf", 36)
     smaller_font = pygame.font.Font("Pacman/fonts/emulogic-font/Emulogic-zrEw.ttf", 24)
-
+    
+    # WE NEED TO FIX THE SPRITES 
     # Estimated positions, labels, colors, and images for every ghost
     ghost_details = [
-        [(50, 100), "SHADOW - \"BLINKY\"", (255,0,0), pygame.image.load(images['r'])],  # Red ghost at (50, 100)
-        [(50, 150), "SPEEDY - \"PINKY\"", (255,184,255), pygame.image.load(images['p'])],  # Pink ghost at (50, 150)
-        [(50, 200), "BASHFUL - \"INKY\"", (0,255,255), pygame.image.load(images['b'])],  # Blue ghost at (50, 200)
-        [(50, 250), "POKEY - \"CLYDE\"", (255,184,82), pygame.image.load(images['o'])]]  # Orange ghost at (50, 250)
-
+        [(30, 100), "SHADOW - \"BLINKY\"", (255,0,0), ghosts[0].sprites["move"]],  # Red ghost at (50, 100)
+        [(30, 150), "SPEEDY - \"PINKY\"", (255,184,255), ghosts[1].sprites["move"]],  # Pink ghost at (50, 150)
+        [(30, 200), "BASHFUL - \"INKY\"", (0,255,255), ghosts[2].sprites["move"]],  # Blue ghost at (50, 200)
+        [(30, 250), "POKEY - \"CLYDE\"", (255,184,82), ghosts[3].sprites["move"]]  # Orange ghost at (50, 250)
+    ]
+    
     # scale the ghost images
     for num in range(len(ghost_details)):
         ghost_details[num][3] = pygame.transform.scale(ghost_details[num][3], (40,40))
@@ -207,7 +195,7 @@ def start_menu(speed_pacman, speed_ghosts, speed_ghosts_frightened):
     # Update the display
     pygame.display.flip()
 
-    pygame.time.wait(3000) # wait 3 secs as a placeholder for the ghost animation at the start
+    #pygame.time.wait(3000) # wait 3 secs as a placeholder for the ghost animation at the start
     
 def find_cordinates(x,y):
     px = (18*x) + 250
@@ -240,21 +228,17 @@ def display(image, pos):
     image_pos_y = pos.y * 18 + offset_y - image.get_height() / 2
     screen.blit(image, (image_pos_x, image_pos_y)) # Display to screen
 
-def display_characters(pygame, pacman, ghosts):
+def display_characters(pygame, pacman, ghosts, phase, seconds):
     # Display ghosts
     for ghost in ghosts:
-        display(Ghosts.images["body"][ghost.id], ghost.pos)
-        #display(images["eyes"], ghost.pos)
+        image = ghost.change_animation(phase, seconds)
+        display(image, ghost.pos)
         
     # Display pacman
     if not pacman.is_dead:
         pacman.rotate_sprite()
     if pacman.image != None:    
         display(pacman.image, pacman.pos) # Display pacman
-    
-    # Display ghost targets
-    # for i in range(4):
-    #     display(targets[i], ghosts[i].target) # Display the target for each ghost
     
     # Update pygame
     pygame.display.flip()
@@ -338,7 +322,7 @@ def __main__(grid_original):
     fps = 60 # Frames per second
     level = 1
     
-    pacman = Pacman(10.0 / fps) # Tiles per second / Frames per second = Tiles per frame
+    pacman = Pacman(11.0 / fps) # Tiles per second / Frames per second = Tiles per frame
     speed_pacman = pacman.base_speed * 0.80
     speed_ghosts = pacman.speed * 0.80 # frightened ghosts are two-thirds of their normal speed
     start_menu(speed_pacman, speed_ghosts, speed_ghosts*2/3) 
@@ -371,11 +355,13 @@ def __main__(grid_original):
             phase = 's' # Begin in scatter mode
             next_move = None
             seconds = phase_seconds = scared_seconds = phase_rotation = 0
+            fruit = Fruit(level)
+            Fruit.is_active = True
             ghosts = [
-                Ghosts.Ghost('r', ghosts_speed, ""),
-                Ghosts.Ghost('p', ghosts_speed, ""),
-                Ghosts.Ghost('b', ghosts_speed, ""),
-                Ghosts.Ghost('o', ghosts_speed, "")
+                Ghosts.Ghost('r', ghosts_speed),
+                Ghosts.Ghost('p', ghosts_speed),
+                Ghosts.Ghost('b', ghosts_speed),
+                Ghosts.Ghost('o', ghosts_speed)
             ]
             if pellets < 100:
                 ghosts[0].in_chase = True
@@ -397,6 +383,7 @@ def __main__(grid_original):
                 next_move = pacman.control_pacman(next_move, grid) # Direction controls
                 pacman.update_pacman(grid)
                 Ghosts.update_ghosts(ghosts, pacman, level, grid, phase, fps, seconds, pellets)
+                update_fruit(fruit, pacman, pellets, fps, level)
                 
                 # Update board
                 seconds += 1 / fps # Increment timer
@@ -407,9 +394,19 @@ def __main__(grid_original):
                     level += 1 # Increment level
                     print("Level Complete!")
                     break
+                
+                # Extra life check
+                if pacman.score // 10000 > pacman.extra_lives: # Every 10,000 points is a life
+                    if pacman.lives < 5:
+                        pacman.lives += 1
+                    pacman.extra_lives += 1
+                
                 # Update display
-                display_characters(pygame, pacman, ghosts)
-                print(pacman.score)
+                if fruit is not None and Fruit.is_active:
+                    display(fruit.image, fruit.pos)
+                    #screen.blit(fruit.image.get_image(0, 0), (200, 200))
+                display_characters(pygame, pacman, ghosts, phase, seconds)
+                # print(pacman.score)
             
             # End of life
             seconds = 0
@@ -418,7 +415,7 @@ def __main__(grid_original):
                 check_escape(pacman.score)
                 run_graph(grid, seconds)
                 pacman.change_animation()
-                display_characters(pygame, pacman, ghosts)
+                display_characters(pygame, pacman, ghosts, phase, seconds)
                 clock.tick(7)
                 seconds += 1 / 7
             

@@ -1,24 +1,30 @@
 import pygame
 import numpy as np
 
-BASETILEWIDTH = 16
-BASETILEHEIGHT = 16
-
-TILEWIDTH = 18
-TILEHEIGHT = 18
+TILE_WIDTH = 30
+TILE_HEIGHT = 30
 
 class Spritesheet(object):
     def __init__(self):
-        self.sheet = pygame.image.load("sprites_sheet.png").convert()
+        # Get the sprites sheet
+        self.sheet = pygame.image.load("Pacman/images/sprites_sheet.png").convert()
         transcolor = self.sheet.get_at((0,0))
         self.sheet.set_colorkey(transcolor)
-        width = int(self.sheet.get_width() / BASETILEWIDTH * TILEWIDTH)
-        height = int(self.sheet.get_height() / BASETILEHEIGHT * TILEHEIGHT)
+        
+        # Get the size of the sprite on the sheet
+        width = int(self.sheet.get_width() / 16 * TILE_WIDTH)
+        height = int(self.sheet.get_height() / 16 * TILE_HEIGHT)
+        
+        # Scale the image
         self.sheet = pygame.transform.scale(self.sheet, (width, height))
         
-    def getImage(self, x, y, width, height):
-        x *= TILEWIDTH
-        y *= TILEHEIGHT
+    def get_image(self, loc, width, height):
+        '''
+        Returns 
+        '''
+        x, y = loc
+        x *= TILE_WIDTH
+        y *= TILE_HEIGHT
         self.sheet.set_clip(pygame.Rect(x, y, width, height))
         return self.sheet.subsurface(self.sheet.get_clip())
 
@@ -29,39 +35,36 @@ class PacmanSprites(Spritesheet):
         self.entity.image = self.getStartImage()       
     
     def getStartImage(self):
-        return self.getImage(8, 0)
+        return self.get_image(8, 0)
     
-    def getImage(self, x, y):
-        return Spritesheet.getImage(self, x, y, 2*TILEWIDTH, 2*TILEHEIGHT)
+    def get_image(self, x, y):
+        return Spritesheet.get_image(self, x, y, 2*TILE_WIDTH, 2*TILE_HEIGHT)
 
-# class GhostSprites(Spritesheet):
-#     def __init__(self, entity):
-#         Spritesheet.__init__(self)
-#         self.x = {BLINKY:0, PINKY:2, INKY:4, CLYDE:6}
-#         self.entity = entity
-#         self.entity.image = self.getStartImage()
+class GhostSprites(Spritesheet):
+    def __init__(self):
+        Spritesheet.__init__(self)
+        # self.x = {BLINKY:0, PINKY:2, INKY:4, CLYDE:6}
+        # self.entity = entity
+        # self.entity.image = self.get_start_image()
         
-#     def getStartImage(self):
-#         return self.getImage(self.x[self.entity.name], 4)
+    # def get_start_image(self):
+    #     return self.get_image(self.x[self.entity.name], 4)
 
-#     def getImage(self, x, y):
-#         return Spritesheet.getImage(self, x, y, 2*TILEWIDTH, 2*TILEHEIGHT)
+    def get_image(self, loc):
+        return Spritesheet.get_image(self, loc, TILE_WIDTH, TILE_HEIGHT)
 
 class FruitSprites(Spritesheet):
-    def __init__(self, entity):
+    def __init__(self):
         Spritesheet.__init__(self)
-        self.entity = entity
-        self.entity.image = self.getStartImage()
     
-    def getStartImage(self):
-        return self.getImage(16, 8)
+    # def getStartImage(self):
+    #     return self.getImage(16, 8)
     
-    def getImage(self, x, y):
-        return Spritesheet.getImage(self, x, y, 2*TILEWIDTH, 2*TILEHEIGHT)
+    def get_image(self, loc):
+        return Spritesheet.get_image(self, loc, TILE_WIDTH, TILE_HEIGHT)
 
 class Entity(object):
     def __init__(self, node):
-        ...
         self.image = None
     
     def render(self, screen):
