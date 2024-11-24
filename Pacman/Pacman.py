@@ -102,7 +102,6 @@ class Pacman(Character):
                 
         self.image = self.sprites[self.current_sprite][self.current_sprite_index]
     
-    
     def rotate_sprite(self):
         self.image = self.sprites[self.current_sprite][self.current_sprite_index]
         if self.dir == 'w':
@@ -117,7 +116,6 @@ class Pacman(Character):
     # Changes the direction of pacman from the keyboard input, if move is invalid returns the next move 
     def control_pacman(self, next_move, grid):
         # Direction controls
-        # next_move = next_move_list[0] # Store as tuple for pass by reference
         pos = self.pos.tile()
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w] or next_move == 'w':
@@ -148,5 +146,5 @@ class Pacman(Character):
                 self.dir = 'd'
                 next_move = None
                 self.pos.y = pos.y
-
+        
         return next_move

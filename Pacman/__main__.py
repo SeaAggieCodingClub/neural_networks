@@ -10,6 +10,7 @@ from Position import *
 import copy
 from Pacman import Pacman
 from Fruit import Fruit, update_fruit
+from Score import Score
 pygame.init()
 
 
@@ -244,6 +245,20 @@ def display_characters(pygame, pacman, ghosts, phase, seconds):
     # Update pygame
     pygame.display.flip()
 
+def display_fruit(fruit):
+    # Display fruit
+    if fruit is not None and Fruit.is_active:
+        display(fruit.image, fruit.pos)
+    for x in range(Fruit.q.qsize()):
+        q = Fruit.q.queue
+        display(q[x], Position(x * 2 + 0.3, 31.5))
+
+def draw(pygame, pacman, ghosts, phase, seconds, fruit):
+    for score in Score.l:
+        display(score.image, score.pos)
+    display_fruit(fruit)
+    display_characters(pygame, pacman, ghosts, phase, seconds)
+
 # Returns the number of pellets on the board
 def get_pellets(grid):
     sum = 0
@@ -330,9 +345,9 @@ def __main__(grid_original):
     fps = 60 # Frames per second
     level = 1
     
-    pacman = Pacman(11.0 / fps) # Tiles per second / Frames per second = Tiles per frame
+    pacman = Pacman(14.0 / fps) # Tiles per second / Frames per second = Tiles per frame
     speed_pacman = pacman.base_speed * 0.80
-    speed_ghosts = pacman.speed * 0.80 # frightened ghosts are two-thirds of their normal speed
+    speed_ghosts = speed_pacman * 0.80 # frightened ghosts are two-thirds of their normal speed
     start_menu(speed_pacman, speed_ghosts, speed_ghosts*2/3) 
     
     # Loop across each level
@@ -410,9 +425,7 @@ def __main__(grid_original):
                     pacman.extra_lives += 1
                 
                 # Update display
-                if fruit is not None and Fruit.is_active:
-                    display(fruit.image, fruit.pos)
-                display_characters(pygame, pacman, ghosts, phase, seconds)
+                draw(pygame, pacman, ghosts, phase, seconds, fruit)
                 # print(pacman.score)
             
             # End of life
@@ -422,7 +435,7 @@ def __main__(grid_original):
                 check_escape(pacman.score)
                 run_graph(grid, seconds)
                 pacman.change_animation()
-                display_characters(pygame, pacman, ghosts, phase, seconds)
+                draw(pygame, pacman, ghosts, phase, seconds, fruit)
                 clock.tick(7)
                 seconds += 1 / 7
             

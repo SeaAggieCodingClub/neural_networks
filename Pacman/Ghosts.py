@@ -479,7 +479,7 @@ def update_ghosts(ghosts, pacman, level, grid, phase, fps, seconds, pellets):
         pos = ghost.pos.tile()
         if pos.equals(pacman.pos.tile()) or pos.equals(pacman.movep(0.5, pacman.dir).tile()): # If pacman is on or near the ghost
             if not ghost.is_dead:
-                if phase == 'f': # If in frightened mode
+                if phase == 'f' and not ghost.override_frightened: # If in frightened mode
                         #time.sleep(1)
                         Ghost.consec_eaten += 1
                         pacman.score += consec_points[Ghost.consec_eaten] # Add to score

@@ -1,6 +1,7 @@
 import pygame
 from Position import *
 from Sprites import *
+from Score import Score
 from queue import Queue
 
 ids = [
@@ -13,28 +14,6 @@ ids = [
     'b',
     'k'
 ]
-
-images = {
-    'c':"cherry.png",
-    's':"strawberry.png",
-    'o':"orange.png",
-    'a':"apple.png",
-    'm':"melon.png",
-    'g':"galaxian.png",
-    'b':"bell.png",
-    'k':"key.png"
-}
-
-locs = {
-    'c':(2, 3),
-    's':(3, 3),
-    'o':(4, 3),
-    'a':(5, 3),
-    'm':(6, 3),
-    'g':(7, 3),
-    'b':(8, 3),
-    'k':(9, 3)
-}
 
 points = {
     'c':100,
@@ -51,6 +30,7 @@ class Fruit:
     id = None
     pos = Position(13.50, 17)
     sprites = None
+    image = None
     
     # Static
     active_seconds = 0
@@ -62,7 +42,7 @@ class Fruit:
         self.id = self.get_id(level)
         
         sprites = FruitSprites()
-        self.image = sprites.get_image(locs[self.id])
+        self.image = sprites.get_image(self.id)
         
         #self.image = pygame.transform.scale(pygame.image.load("Pacman/images/fruits/" + images[self.id]), (35, 35))
         self.points = points[self.id]
@@ -82,9 +62,11 @@ class Fruit:
         self.despawn()
         q = Fruit.q
         
-        q.put(self) # Add the fruit
+        q.put(self.image) # Add the fruit
         if q.qsize() > 7: # If the list is full
             q.get() # Drop the last fruit
+        
+        Score(self.id)
     
     def spawn(self):
         Fruit.is_active = True
