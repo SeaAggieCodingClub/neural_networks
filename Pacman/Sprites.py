@@ -165,28 +165,23 @@ class ScoreSprites(Spritesheet):
         
     #     return (x, y)
     
-    def get_image(self, id):
+    def get_image(self, type, index):
         '''Returns a pygame image'''
         
-        # if type == "Ghost":
-        #     loc = self.get_ghost_score_loc(index)
-        # else:
-        #     loc = self.get_fruit_score_loc(index)
+        if type == "Ghost":
+            loc = (index, 8)
+        else:
+            locs = {
+                'c':(0, 9),
+                's':(1, 9),
+                'o':(2, 9),
+                'a':(3, 9),
+                'm':(4, 9),
+                'g':(4, 10),
+                'b':(4, 11),
+                'k':(4, 13),
+            }
+            loc = locs[index]
         
-        locs = {
-            'c':(0, 9), # Fruits
-            's':(1, 9),
-            'o':(2, 9),
-            'a':(3, 9),
-            'm':(4, 9),
-            'g':(4, 10),
-            'b':(4, 11),
-            'k':(4, 13),
-            'r':(0, 8), # Ghosts
-            'p':(1, 8),
-            'b':(2, 8),
-            'o':(3, 8),
-        }
-        
-        return Spritesheet.get_image(self, locs[id], IMAGE_WIDTH, IMAGE_HEIGHT)
+        return Spritesheet.get_image(self, loc, IMAGE_WIDTH, IMAGE_HEIGHT)
 

@@ -66,7 +66,7 @@ class Fruit:
         if q.qsize() > 7: # If the list is full
             q.get() # Drop the last fruit
         
-        Score(self.id)
+        Score("Fruit", self.pos, self.id) # Display score
     
     def spawn(self):
         Fruit.is_active = True

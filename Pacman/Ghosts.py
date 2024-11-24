@@ -1,6 +1,7 @@
 from Position import *
 from Character import *
 from Sprites import *
+from Score import Score
 import copy
 import random
 import math
@@ -473,21 +474,21 @@ def move_normal(ghosts, ghost, pacman, grid, phase):
 def update_ghosts(ghosts, pacman, level, grid, phase, fps, seconds, pellets): 
     # Specifics for each ghost
     update_personalities(ghosts, pacman, fps, pellets)
-    
+    ghost_killed = None # If a ghost has been killed
     for ghost in ghosts:
         # Check for death
         pos = ghost.pos.tile()
         if pos.equals(pacman.pos.tile()) or pos.equals(pacman.movep(0.5, pacman.dir).tile()): # If pacman is on or near the ghost
             if not ghost.is_dead:
                 if phase == 'f' and not ghost.override_frightened: # If in frightened mode
-                        #time.sleep(1)
-                        Ghost.consec_eaten += 1
-                        pacman.score += consec_points[Ghost.consec_eaten] # Add to score
-                        ghost.kill()
-                        print("KILLED GHOST", ghost.id)
+                    # Kill the ghost
+                    ghost_killed = ghost.id
+                    Ghost.consec_eaten += 1
+                    pacman.score += consec_points[Ghost.consec_eaten] # Add to score
+                    Score("Ghost", ghost.pos.tile(), Ghost.consec_eaten - 1) # Display score
+                    ghost.kill()
                 else:
                     pacman.kill()
-                    print("KILLED PACMAN", pacman.lives)
                     return
         if ghost.is_active:
             if ghost.is_in_house(): # If the ghost is waiting to exit the house
@@ -507,3 +508,4 @@ def update_ghosts(ghosts, pacman, level, grid, phase, fps, seconds, pellets):
             if 0 <= pos.x <= 27 and grid[pos.x, pos.y] == 'wall': # Check if pos is a wall
                 ghost.turn_around()
             try_exit(ghosts, level, seconds, pellets)
+    return ghost_killed
