@@ -117,34 +117,35 @@ class Pacman(Character):
     def control_pacman(self, next_move, grid):
         # Direction controls
         pos = self.pos.tile()
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_w] or next_move == 'w':
-            if self.check_wall('w', grid):
-                next_move = 'w' # Set a buffer for the next move
-            else:
-                self.dir = 'w'
-                next_move = None
-                self.pos.x = pos.x
-        if keys[pygame.K_a] or next_move == 'a':
-            if self.check_wall('a', grid):
-                next_move = 'a' # Set a buffer for the next move
-            else:
-                self.dir = 'a'
-                next_move = None
-                self.pos.y = pos.y
-        if keys[pygame.K_s] or next_move == 's':
-            if self.check_wall('s', grid):
-                next_move = 's' # Set a buffer for the next move
-            else:
-                self.dir = 's'
-                next_move = None
-                self.pos.x = pos.x
-        if keys[pygame.K_d] or next_move == 'd':
-            if self.check_wall('d', grid):
-                next_move = 'd' # Set a buffer for the next move
-            else:
-                self.dir = 'd'
-                next_move = None
-                self.pos.y = pos.y
+        if 0 <= pos.x <= 27:
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_w] or next_move == 'w':
+                if self.check_wall('w', grid):
+                    next_move = 'w' # Set a buffer for the next move
+                else:
+                    self.dir = 'w'
+                    next_move = None
+                    self.pos.x = pos.x
+            if keys[pygame.K_a] or next_move == 'a':
+                if self.check_wall('a', grid):
+                    next_move = 'a' # Set a buffer for the next move
+                else:
+                    self.dir = 'a'
+                    next_move = None
+                    self.pos.y = pos.y
+            if keys[pygame.K_s] or next_move == 's':
+                if self.check_wall('s', grid):
+                    next_move = 's' # Set a buffer for the next move
+                else:
+                    self.dir = 's'
+                    next_move = None
+                    self.pos.x = pos.x
+            if keys[pygame.K_d] or next_move == 'd':
+                if self.check_wall('d', grid):
+                    next_move = 'd' # Set a buffer for the next move
+                else:
+                    self.dir = 'd'
+                    next_move = None
+                    self.pos.y = pos.y
         
         return next_move

@@ -11,6 +11,7 @@ import copy
 from Pacman import Pacman
 from Fruit import Fruit, update_fruit
 from Score import Score
+from Sprites import Spritesheet
 pygame.init()
 
 
@@ -37,6 +38,8 @@ pygame.display.set_caption('Pacman')
 background = pygame.image.load("Pacman/images/background.png")
 dot_ = pygame.image.load("Pacman/images/dot.png")
 pdot = pygame.transform.scale(dot_, (40, 40))
+abyss = pygame.image.load("Pacman/images/black.png")
+abyss = pygame.transform.scale(abyss, (35, 35))
 
 # Set clock speed
 clock = pygame.time.Clock()
@@ -171,7 +174,7 @@ def start_menu(speed_pacman, speed_ghosts, speed_ghosts_frightened):
     # scale the ghost images
     for num in range(len(ghost_details)):
         ghost_details[num][3] = pygame.transform.scale(ghost_details[num][3], (40,40))
-
+    
     for num in range(len(ghost_details)):
         x, y = ghost_details[num][0][0], ghost_details[num][0][1]
         label, color, image = ghost_details[num][1], ghost_details[num][2], ghost_details[num][3]
@@ -243,9 +246,6 @@ def display_characters(pygame, pacman, ghosts, phase, seconds, ghost_killed=None
         pacman.rotate_sprite()
     if pacman.image != None:    
         display(pacman.image, pacman.pos) # Display pacman
-    
-    # Update pygame
-    pygame.display.flip()
 
 def display_fruit(fruit):
     # Display fruit
@@ -260,6 +260,11 @@ def draw(pygame, pacman, ghosts, phase, seconds, fruit, ghost_killed=None):
         display(score.image, score.pos)
     display_fruit(fruit)
     display_characters(pygame, pacman, ghosts, phase, seconds, ghost_killed)
+    display(abyss, Position(-1.5, 14))
+    display(abyss, Position(28.4, 14))
+    
+    # Update pygame
+    pygame.display.flip()
 
 # Returns the number of pellets on the board
 def get_pellets(grid):

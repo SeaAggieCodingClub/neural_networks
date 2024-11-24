@@ -152,19 +152,6 @@ class ScoreSprites(Spritesheet):
     def __init__(self):
         Spritesheet.__init__(self)
     
-    # def get_ghost_score_loc(self, index):
-    #     '''Returns the location of the ghost score sprite on sprites_sheet.png '''
-        
-    #     return (index, 8)
-    
-    # def get_fruit_score_loc(self, index):
-    #     '''Returns the location of the fruit score on sprites_sheet.png '''
-        
-    #     x = index if index < 4 else 4
-    #     y = 9 if index < 4 else index + 4
-        
-    #     return (x, y)
-    
     def get_image(self, type, index):
         '''Returns a pygame image'''
         
