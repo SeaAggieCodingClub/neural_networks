@@ -362,7 +362,7 @@ def __main__(grid_original):
     while running:
         # Variables for each level
         grid = copy.deepcopy(grid_original)
-        pacman.lives = 1
+        pacman.lives = 3
         pellets = 244
         print("Level", level)
         
@@ -396,8 +396,18 @@ def __main__(grid_original):
             ]
             if pellets < 100:
                 ghosts[0].in_chase = True
+                
+            # Wait to start level
+            while seconds < 1:
+                menu()
+                check_escape(pacman.score)
+                run_graph(grid, seconds)
+                draw(pygame, pacman, ghosts, phase, seconds, fruit)
+                clock.tick(fps)
+                seconds += 1 / fps
             
             # Run
+            seconds = 0
             prev_lives = pacman.lives
             while prev_lives == pacman.lives: # Break when pacman loses a life
                 for event in pygame.event.get():
@@ -443,6 +453,7 @@ def __main__(grid_original):
                 if pacman.score // 10000 > pacman.extra_lives: # Every 10,000 points is a life
                     if pacman.lives < 5:
                         pacman.lives += 1
+                        prev_lives = pacman.lives
                     pacman.extra_lives += 1
                 
                 # Update display

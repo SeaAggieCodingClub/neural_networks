@@ -478,18 +478,17 @@ def update_ghosts(ghosts, pacman, level, grid, phase, fps, seconds, pellets):
     for ghost in ghosts:
         # Check for death
         pos = ghost.pos.tile()
-        if pos.equals(pacman.pos.tile()) or pos.equals(pacman.movep(0.5, pacman.dir).tile()): # If pacman is on or near the ghost
-            if not ghost.is_dead:
-                if phase == 'f' and not ghost.override_frightened: # If in frightened mode
-                    # Kill the ghost
-                    ghost_killed = ghost.id
-                    Ghost.consec_eaten += 1
-                    pacman.score += consec_points[Ghost.consec_eaten] # Add to score
-                    Score("Ghost", ghost.pos.tile(), Ghost.consec_eaten - 1) # Display score
-                    ghost.kill()
-                else:
-                    pacman.kill()
-                    return
+        if (pos.equals(pacman.pos.tile()) or pos.equals(pacman.movep(0.5, pacman.dir).tile())) and not ghost.is_dead: # If pacman is on or near the ghost
+            if phase == 'f' and not ghost.override_frightened: # If in frightened mode
+                # Kill the ghost
+                ghost_killed = ghost.id
+                Ghost.consec_eaten += 1
+                pacman.score += consec_points[Ghost.consec_eaten] # Add to score
+                Score("Ghost", ghost.pos.tile(), Ghost.consec_eaten - 1) # Display score
+                ghost.kill()
+            else:
+                pacman.kill()
+                return
         if ghost.is_active:
             if ghost.is_in_house(): # If the ghost is waiting to exit the house
                 if ghost.is_dead:
