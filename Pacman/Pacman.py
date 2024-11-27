@@ -1,7 +1,6 @@
 from Character import *
 from Position import *
 from Sprites import *
-import copy
 import Sound
 
 class Pacman(Character):
@@ -47,22 +46,29 @@ class Pacman(Character):
         
         self.image = self.sprites["move"][0]
     
-    
     def kill(self):
+        '''Decrease number of lives and activate the death animation'''
+        
         self.is_dead = True
+        self.lives -= 1
+        
         self.current_sprite = "death"
         self.current_sprite_index = 0
-        self.sprite_buffer_max = 0
         self.current_sprite_buffer = 0
-        self.lives -= 1
+        self.sprite_buffer_max = 0
+        
         Sound.play_death_sound()
     
     def respawn(self):
+        '''Reset the position and sprites'''
+        
         self.is_dead = False
+        
         self.current_sprite = "move"
         self.current_sprite_index = 0
-        self.sprite_buffer_max = 2
         self.current_sprite_buffer = 0
+        self.sprite_buffer_max = 2
+        
         self.reset_position()
         self.dir = 'a'
         
@@ -70,6 +76,8 @@ class Pacman(Character):
         self.pos = Position(13.5, 23)
     
     def update_pacman(self, grid):
+        '''Moves, checks walls, checks warp tunnels, and updates animation for every frame'''
+        
         self.check_warp_tunnels()
         if self.pause:
             self.pause = False
@@ -80,7 +88,8 @@ class Pacman(Character):
             self.change_animation()
         
     def change_animation(self):
-        # Changes the sprite every x frames
+        '''Changes the sprite every frame'''
+        
         if self.current_sprite_buffer == self.sprite_buffer_max:
             self.current_sprite_buffer = 0
         else:
@@ -103,6 +112,8 @@ class Pacman(Character):
         self.image = self.sprites[self.current_sprite][self.current_sprite_index]
     
     def rotate_sprite(self):
+        '''Updates the rotation based on the direction facing'''
+        
         self.image = self.sprites[self.current_sprite][self.current_sprite_index]
         if self.dir == 'w':
             self.image = pygame.transform.rotate(self.image, 0)
@@ -112,9 +123,10 @@ class Pacman(Character):
             self.image = pygame.transform.rotate(self.image, 270)
         elif self.dir == 'a':
             self.image = pygame.transform.rotate(self.image, 90)
-            
-    # Changes the direction of pacman from the keyboard input, if move is invalid returns the next move 
+    
     def control_pacman(self, next_move, grid):
+        '''Changes the direction of pacman from the keyboard input, if move is invalid returns the next move'''
+        
         # Direction controls
         pos = self.pos.tile()
         if 0 <= pos.x <= 27:

@@ -1,19 +1,15 @@
 import pygame
 import time
-import os
-import random
-from Ghosts import Ghost
-import Ghosts
-import Pacman
-import Sound
-from Position import *
 import copy
+from Ghosts import Ghost
 from Pacman import Pacman
 from Fruit import Fruit, update_fruit
 from Score import Score
-from Sprites import Spritesheet
-pygame.init()
+from Position import *
+import Ghosts
+import Sound
 
+pygame.init()
 
 # Get the screen resolution
 screen_info = pygame.display.Info()
@@ -128,17 +124,22 @@ grid = {
 }
 
 def get_high_score():
+    '''Reads the latest high score from high_scores.txt'''
+    
     with open("Pacman/high_scores.txt", 'r') as hs:
         high_scores = hs.readlines() # Read all scores
         if len(high_scores) > 0:
             return int(high_scores[-1]) # Latest high score
 
 def update_high_score(score):
+    '''Updates the high score to high_scores.txt and keeps track of all previous high scores'''
     with open("Pacman/high_scores.txt", 'a') as hs:
         if score > get_high_score(): # If latest score is larger
             hs.write('\r' + str(score)) # Replace score
 
 def check_escape(score):
+    '''Check if the escape key has been pressed so the user can exit the game'''
+    
     keys = pygame.key.get_pressed()
     if keys[pygame.K_ESCAPE]:
         update_high_score(score)
@@ -146,6 +147,8 @@ def check_escape(score):
         exit()
 
 def menu():
+    '''Basic properties of the menu'''
+    
     screen.fill((0, 0, 0))  # Clear the screen with a black background
     
     pygame.draw.rect(screen, blue, outside_border, border_radius=15)
@@ -153,6 +156,8 @@ def menu():
     screen.blit(background,(250, 5))
 
 def start_menu(speed_pacman, speed_ghosts, speed_ghosts_frightened):
+    '''The main function for the menu'''
+    
     # doesn't use any of the speeds yet, but it will once I add the sequence with the ghosts chasing/getting chased by pacman later
     return
     # Set up the screen for the start menu
@@ -203,11 +208,15 @@ def start_menu(speed_pacman, speed_ghosts, speed_ghosts_frightened):
     #pygame.time.wait(3000) # wait 3 secs as a placeholder for the ghost animation at the start
 
 def find_cordinates(x,y):
+    '''Converts pixel coordinates to grid coordinates'''
+    
     px = (18*x) + 250
     py = (18*y)+ -20
     return px,py
 
 def run_graph(grid, seconds):
+    '''Displays the level and pellets'''
+    
     for key in grid:
         x, y = key
         
@@ -219,11 +228,10 @@ def run_graph(grid, seconds):
                 screen.blit(dot_,(px, py))
             if grid[(x, y)] == 'pdot' and int(seconds * blink_rate) % 2 == 0:
                 screen.blit(pdot,(px - 12, py - 12))
-                
-            # if level[(x,y)] == 'wall':
-            #     screen.blit(wall,(px,py))
 
 def display(image, pos):
+    '''Displays an image central to its position and relative to the grid with screen offsets'''
+    
     # Offset values from the edge of the screen
     offset_x = 55
     offset_y = 60
@@ -234,6 +242,8 @@ def display(image, pos):
     screen.blit(image, (image_pos_x, image_pos_y)) # Display to screen
 
 def display_characters(pygame, pacman, ghosts, phase, seconds, ghost_killed=None):
+    '''Displays ghosts and pacman'''
+    
     # Display ghosts
     for ghost in ghosts:
         if ghost_killed == ghost.id: # Do not display the killed ghost
@@ -248,7 +258,8 @@ def display_characters(pygame, pacman, ghosts, phase, seconds, ghost_killed=None
         display(pacman.image, pacman.pos) # Display pacman
 
 def display_fruit(fruit):
-    # Display fruit
+    '''Displays the fruit'''
+    
     if fruit is not None and Fruit.is_active:
         display(fruit.image, fruit.pos)
     for x in range(Fruit.q.qsize()):
@@ -256,6 +267,8 @@ def display_fruit(fruit):
         display(q[x], Position(x * 2 + 0.3, 31.5))
 
 def draw(pygame, pacman, ghosts, phase, seconds, fruit, ghost_killed=None):
+    '''Displays all entities such as characters and fruit'''
+    
     for score in Score.l:
         display(score.image, score.pos)
     display_fruit(fruit)
@@ -266,16 +279,18 @@ def draw(pygame, pacman, ghosts, phase, seconds, fruit, ghost_killed=None):
     # Update pygame
     pygame.display.flip()
 
-# Returns the number of pellets on the board
 def get_pellets(grid):
+    '''Returns the number of pellets on the board'''
+    
     sum = 0
     for i in grid.values(): # For each value
         if i == 'dot_': # If pellet
             sum += 1 # Add to sum
     return sum
 
-# Updates the phases and sounds associated with eating pellets
 def update_pellets(pacman, grid, phase):
+    '''Updates the phases and sounds associated with eating pellets'''
+    
     # Pacman Eating Dots
     pos = pacman.pos.tile() # Centered position
     if 0 <= pos.x <= 27: # Check if indices are in range
@@ -293,8 +308,9 @@ def update_pellets(pacman, grid, phase):
 
     return phase
 
-# Switches the ghost phase from chase to scatter and back again
 def phase_switch(phase, phase_rotation):
+    '''Switches the ghost phase from chase to scatter and back again'''
+    
     if phase == 's':
         phase = 'c'
     elif phase == 'c':
@@ -302,8 +318,9 @@ def phase_switch(phase, phase_rotation):
         phase_rotation += 1
     return phase, phase_rotation
 
-# Updates the ghosts attributes according to each phase
 def update_phase(values, ghosts, pacman, grid, fps):
+    '''Updates the ghosts attributes according to each phase'''
+    
     (phase, phase_rotation, level, phase_seconds) = values # Store in tuple for a pass by reference
     
     prev_phase = phase # Hold variable
@@ -347,12 +364,12 @@ def update_phase(values, ghosts, pacman, grid, fps):
     
     return (phase, phase_rotation, level, phase_seconds)
 
-def __main__(grid_original):
+def __main__(grid_original):    
     # Beginning variables for the whole game
     fps = 60 # Frames per second
     level = 1
     
-    pacman = Pacman(11.0 / fps) # Tiles per second / Frames per second = Tiles per frame
+    pacman = Pacman(12.0 / fps) # Tiles per second / Frames per second = Tiles per frame
     speed_pacman = pacman.base_speed * 0.80
     speed_ghosts = speed_pacman * 0.80 # frightened ghosts are two-thirds of their normal speed
     start_menu(speed_pacman, speed_ghosts, speed_ghosts*2/3) 
@@ -430,14 +447,14 @@ def __main__(grid_original):
                 # Pause for killed ghost
                 if ghost_killed is not None:
                     killed_seconds = 0
-                    while killed_seconds < 1:
+                    while killed_seconds < 0.5:
                         menu()
                         check_escape(pacman.score)
                         run_graph(grid, seconds)
                         pacman.change_animation()
                         draw(pygame, pacman, ghosts, phase, seconds, fruit, ghost_killed)
-                        clock.tick(1)
-                        killed_seconds += 1
+                        clock.tick(fps)
+                        killed_seconds += 1 / fps
                 
                 # Update board
                 seconds += 1 / fps # Increment timer

@@ -5,11 +5,8 @@ from Score import Score
 import copy
 import random
 import math
-import pygame
-import time
 
-# Tiles in which there is an intersection
-decision_tiles = {
+decision_tiles = { # Tiles in which there is an intersection (X val : [Y vals])
     1:[5],
     3:[26],
     6:[1, 5, 8, 14, 20, 23],
@@ -22,14 +19,13 @@ decision_tiles = {
     27:[5]
 }
 
-# Decision tiles where there is an extra movement restriction
-special_tiles = {
+special_tiles = { # Decision tiles where there is an extra movement restriction
     12:[11, 23],
     15:[11, 23]
 }
 
-# Positions where each ghost starts
-starting_positions = {
+starting_positions = { # Positions where each ghost starts
+    # In the house:
     #   r
     # b p o
     
@@ -39,24 +35,21 @@ starting_positions = {
     'o':Position(11.67, 14)
 }
 
-# directions where each ghost starts
-starting_directions = {
+starting_directions = { # directions where each ghost starts
     'r':'a',
     'p':'s',
     'b':'w',
     'o':'w'
 }
 
-# Targets for each ghost in scatter mode
-scatter_targets = {
+scatter_targets = { # Targets for each ghost in scatter mode
     'r':Position(0, 0),
     'p':Position(27, 0),
     'b':Position(0, 29),
     'o':Position(27, 29)
 }
 
-# The points received after each ghost eaten in sequence
-consec_points = [
+consec_points = [ # The points received after each ghost eaten in sequence
     0,
     200,
     400,
@@ -68,22 +61,19 @@ consec_points = [
     0
 ]
 
-def scared_time(level):
-    scared_time = [0, 6, 5, 4, 3, 2, 5, 2, 2, 1, 5, 2, 1, 1, 3, 1, 1, 0, 1, 0, 0, 0,]
-    return 0 if level > 21 else scared_time[level]
-
 class Ghost(Character):
     target = None
     scatter_target = None
-    was_on_decision_tile = False
-    consec_eaten = 0
-    override_frightened = False
+    was_on_decision_tile = False # For make sure decisions only happen once
+    consec_eaten = 0 # Counting scores for multiple ghosts eaten in a row
+    override_frightened = False # When returning to the house and being revived
     
+    # Sprites
     sprites = None
     image = None
     image_index = 0
-    flash = 0
-    scared_seconds = 0
+    flash = 0 # White scared
+    scared_seconds = 0 # Timer
     
     # For pink
     blush_timer = 0
@@ -161,6 +151,8 @@ class Ghost(Character):
         self.image = self.sprites["move"][self.dir][0]
     
     def change_animation(self, phase, seconds):
+        '''Changes the sprite every frame'''
+        
         if self.is_dead:
             image = self.sprites["eyes"][self.dir]
         elif phase == 'f' and not self.override_frightened:
@@ -177,8 +169,12 @@ class Ghost(Character):
         self.image = image
         return image
     
-    # If the current position matches a decision tile, only run once per decision tile
     def is_on_decision_tile(self, decision_tiles):
+        '''
+        Returns whether on a decision tile
+        If the current position matches a decision tile, only run once per decision tile
+        '''
+        
         # Check for decision tiles
         found = False
         for x, y_list in decision_tiles.items(): # For each x key in the dictionary
@@ -195,31 +191,39 @@ class Ghost(Character):
             to_return = False
         return to_return
     
-    # If the current position is on a special tile
     def is_on_special(self, special_tiles):
+        '''Returns whether the current position is on a special tile'''
+        
         return any(
             x == round(self.pos.x) and round(self.pos.y) in y_list
             for x, y_list in special_tiles.items()
         )
     
     def is_in_house(self):
-        # Boundaries of the house:
-        # x: 10-17
-        # y: 12-16
+        '''
+        Returns whether the ghost is in the house at the center of the board.
+        Boundaries of the house:
+        x: 10-17
+        y: 12-16
+        '''
         
         pos = self.pos.tile()
         return 10 <= pos.x <= 17 and 13 <= pos.y <= 16
     
     def is_at_entrance(self):
+        '''Returns whether the ghost is at the entrance to the house'''
+        
         pos = self.pos.tile()
         return 13 <= pos.x <= 14 and 11 <= pos.y <= 12
     
-    # Returns the distance from the specified position to the target
     def target_distance(self, pos):
+        '''Returns the distance from the specified position to the target'''
+        
         return math.sqrt((self.target.x - pos.x) ** 2 + (self.target.y - pos.y) ** 2)
     
-    # Returns (as Position, direction) the possible tile choices that neighbor the decision tile specified
     def get_choices(self, grid, special):
+        '''Returns (as Position, direction) the possible tile choices that neighbor the decision tile specified'''
+        
         choices = []
         pos = self.pos.tile()
         
@@ -255,8 +259,12 @@ class Ghost(Character):
                 #print([(position.x, position.y), directions[index]])
         return choices
     
-    # Gets the optimal direction to turn while on a decision tile
-    def get_turn(self, grid, phase, special): #   [([x, y], 'a')]
+    def get_turn(self, grid, phase, special):
+        '''
+        Returns the optimal direction to turn while on a decision tile.
+        Returns as: [([x, y], 'a')]
+        '''
+        
         choices = self.get_choices(grid, special) # Get the list of choices containing tile positions and directions from the decision tile
         
         if len(choices) == 1:
@@ -274,12 +282,16 @@ class Ghost(Character):
         
         return min[1] # Return the direction
     
-    def turn(self, direction): # Should not turn completely around
+    def turn(self, direction):
+        '''Changes the direction of the ghost, but never turns completely around'''
+        
         if self.dir != direction:
             self.pos = self.pos.tile() # Center the position
         self.dir = direction
     
     def turn_around(self):
+        '''Switches the ghost to face the opposite direction during a phase switch'''
+        
         # Find the direction opposite of ghost direction
         match self.dir:
             case 'w':
@@ -292,37 +304,50 @@ class Ghost(Character):
                 self.dir = 'a' 
     
     def exit(self):
-        # Begin to exit the house
-        self.is_active = True
+        '''Begin sequence to exit the house'''
         
         # Blue turns right, orange turns left
+        self.is_active = True
         if self.id == 'b': 
             self.dir = 'd'
         elif self.id == 'o':
             self.dir = 'a'
     
     def kill(self):
+        '''Sets attributes to return to the house after death'''
+        
         # Die and turn into eyes
         self.is_dead = True
         self.image = None
         self.target = Position(13.5, 14)
     
     def revive(self, phase):
+        '''When ghost reaches the house, reset back to normal'''
+        
         self.is_dead = False
-        self.image = None # CHANGE TO NORMAL GHOST IMAGE
         self.move(1) # Move a bit further into the house for effect
         self.turn('w')
         self.override_frightened = phase == 'f'
-        # self.speed = self.base_speed # Return to normal speed
+
+def scared_time(level):
+    '''Returns the amount of time the ghosts are scared based on each level'''
     
-# Sets the target for each individual ghost based on their personality
+    scared_time = [0, 6, 5, 4, 3, 2, 5, 2, 2, 1, 5, 2, 1, 1, 3, 1, 1, 0, 1, 0, 0, 0,]
+    return 0 if level > 21 else scared_time[level]
+
 def set_red_target(red, pacman):
+    '''Sets the target for the red ghost'''
+    
     red.target = pacman.pos.tile() # Just pacman's tile position
 
 def set_pink_target(pink, pacman):
+    '''Sets the target for the pink ghost'''
+    
     pink.target = pacman.movep(4, pacman.dir).tile() # 4 tiles in the direction pacman is facing
 
 def set_blue_target(blue, red, pacman):
+    '''Sets the target for the blue ghost'''
+    
     # Tile positions
     pos_pacman = pacman.pos.tile()
     pos_red = red.pos.tile()
@@ -335,13 +360,15 @@ def set_blue_target(blue, red, pacman):
     blue.target = vector # The final position of the vector
 
 def set_orange_target(orange, pacman):
+    '''Sets the target for the orange ghost'''
+    
     orange.target = pacman.pos
     distance = orange.target_distance(orange.pos) # Get orange's distance to pacman
     orange.target = pacman.pos.tile() if distance > 8 else orange.scatter_target
 
-# Sets the target of any ghost given its id
 def set_targets(id, ghosts, pacman):
-    # Set individual targets for each
+    '''Sets the target for each individual ghost based on their personality'''
+    
     match id:
         case 'r': # Red
             set_red_target(ghosts[0], pacman)
@@ -352,14 +379,14 @@ def set_targets(id, ghosts, pacman):
         case 'o': # Orange
             set_orange_target(ghosts[3], pacman)
 
-# Controlled by timer, switches 
 def update_phase_attributes(ghosts, phase, prev_phase):
+    '''Updates speeds and directions based on the current phase'''
+    
     # Turn ghosts around if changing out of chase or scatter
     if prev_phase in ['c', 's']:
         for ghost in ghosts:
             ghost.turn_around()
     
-    # CHANGE VALUES LATER
     # Change speeds based on phase
     match phase:
         case 'c': # Chase
@@ -373,16 +400,17 @@ def update_phase_attributes(ghosts, phase, prev_phase):
                 ghost.speed = ghost.base_speed * 0.70
 
 def update_personalities(ghosts, pacman, fps, pellets):
-    # red ghost should speed up after x number of pellets gone, and permanently be in chase mode
-    # RED
+    '''Updates attributes for each ghosts personality'''
+    
+    # RED (Cruise Elroy)
     red = ghosts[0]
-    if pellets == 100:
+    if pellets <= 100:
         red.speed = red.base_speed * 1.05 # Increase speed by 5%
-        red.in_chase = True
-    elif pellets == 30:
+        red.in_chase = True # Turn into Cruise Elroy
+    if pellets <= 30:
         red.speed = red.base_speed * 1.10 # Increase speed by 10%
     
-    # PINK
+    # PINK (Gets shy around pacman)
     pink = ghosts[1]
     if pink.blush_timer > 0:
         pink.blush_timer -= 1 # Decrement the timer by 1
@@ -392,9 +420,9 @@ def update_personalities(ghosts, pacman, fps, pellets):
             pink.blush_timer = fps # Pacman is "looking at her", set a blush timer for 1 second
             pink.is_scared = True # Pink is scared
 
-# Check for the conditions for each ghost to leave the house
 def try_exit(ghosts, level, seconds, pellets):
-    # Good luck to whomever is debugging this monstrosity
+    '''Check for the conditions for each ghost to leave the house'''
+    
     pink = ghosts[1]
     blue = ghosts[2]
     orange = ghosts[3]
@@ -419,15 +447,17 @@ def try_exit(ghosts, level, seconds, pellets):
     ):
         orange.exit()
 
-# Moves the ghost out of the starting house
 def move_exit_house(ghost):
+    '''Moves the ghost out of the starting house'''
+    
     if 13.4 < ghost.pos.x < 13.6: # If the ghost reaches the x position of the exit gate
         ghost.dir = 'w' # Turn upward
         ghost.pos.x = 13.5 # Center
     ghost.move(ghost.speed / 2)
 
-# Moves the ghost back to the starting house (After death)
-def move_return_to_house(ghost, grid, phase):       
+def move_return_to_house(ghost, grid, phase):   
+    '''Moves the ghost back to the starting house (After death)'''
+        
     if ghost.is_at_entrance():
         # Move ghost into house
         ghost.pos.x = 13.5 # Move center to the entrance
@@ -446,8 +476,9 @@ def move_return_to_house(ghost, grid, phase):
             ghost.turn_around()
     ghost.move(.3) # Move at higher speed
 
-# Run normal updates: decision tile check, wall check, movement
 def move_normal(ghosts, ghost, pacman, grid, phase):
+    '''Run normal updates: decision tile check, wall check, movement'''
+    
     # Update for decision tiles
     special = ghost.id != 'r' and ghost.is_on_special(special_tiles)
     if ghost.is_on_decision_tile(decision_tiles): # If not in frightened mode, and on a decision tile
@@ -456,7 +487,7 @@ def move_normal(ghosts, ghost, pacman, grid, phase):
             ghost.target = ghost.scatter_target # Set the target to its respective corner
         else: # If on chase, set the respective target
             set_targets(ghost.id, ghosts, pacman) # Update the target
-
+        
         # Turn to the chosen direction
         dir = ghost.get_turn(grid, phase, special)
         ghost.turn(dir)
@@ -466,12 +497,13 @@ def move_normal(ghosts, ghost, pacman, grid, phase):
         if ghost.check_wall(ghost.dir, grid): # Check for a wall ahead
             dir = ghost.get_turn(grid, phase, special)
             ghost.turn(dir)
-
+    
     # Move according to its speed and direction
     ghost.move(ghost.speed)
 
-# Updates everything about the ghosts' data
 def update_ghosts(ghosts, pacman, level, grid, phase, fps, seconds, pellets): 
+    '''Updates everything about the ghosts' data for every frame'''
+    
     # Specifics for each ghost
     update_personalities(ghosts, pacman, fps, pellets)
     ghost_killed = None # If a ghost has been killed
@@ -481,15 +513,16 @@ def update_ghosts(ghosts, pacman, level, grid, phase, fps, seconds, pellets):
         if (pos.equals(pacman.pos.tile()) or pos.equals(pacman.movep(0.5, pacman.dir).tile())) and not ghost.is_dead: # If pacman is on or near the ghost
             if phase == 'f' and not ghost.override_frightened: # If in frightened mode
                 # Kill the ghost
+                ghost.kill()
                 ghost_killed = ghost.id
                 Ghost.consec_eaten += 1
                 pacman.score += consec_points[Ghost.consec_eaten] # Add to score
                 Score("Ghost", ghost.pos.tile(), Ghost.consec_eaten - 1) # Display score
-                ghost.kill()
             else:
+                # Kill pacman and move on to next life
                 pacman.kill()
                 return
-        if ghost.is_active:
+        if ghost.is_active: 
             if ghost.is_in_house(): # If the ghost is waiting to exit the house
                 if ghost.is_dead:
                     ghost.revive(phase)
@@ -500,11 +533,11 @@ def update_ghosts(ghosts, pacman, level, grid, phase, fps, seconds, pellets):
                 if ghost.is_at_entrance(): # Ghost just came out of the house
                     ghost.target = Position(14, 11) # ghost.dir = 'a'
                 move_normal(ghosts, ghost, pacman, grid, phase)
-        else:
+        else: # Ghost is still bobbling inside the house
             ghost.move(ghost.base_speed * 0.6)
-            #if ghost.check_wall(ghost.dir, grid):
             pos = ghost.movep(1, ghost.dir).tile() # Store the tile pos
             if 0 <= pos.x <= 27 and grid[pos.x, pos.y] == 'wall': # Check if pos is a wall
                 ghost.turn_around()
-            try_exit(ghosts, level, seconds, pellets)
+            try_exit(ghosts, level, seconds, pellets) # Check for the exit condition
+    
     return ghost_killed

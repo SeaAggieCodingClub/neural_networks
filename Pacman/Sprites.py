@@ -1,5 +1,4 @@
 import pygame
-import numpy as np
 
 # Size of the sprites on sprites_sheet.png
 TILE_WIDTH = 30
@@ -24,14 +23,15 @@ class Spritesheet(object):
         self.sheet = pygame.transform.scale(self.sheet, (width, height))
         
     def get_image(self, loc, width, height):
-        '''
-        Returns a subsection of sprites_sheet.png as a single sprite
-        '''
+        '''Returns a subsection of sprites_sheet.png as a single sprite'''
+        
         x, y = loc
         x *= TILE_WIDTH
         y *= TILE_HEIGHT
+        
         self.sheet.set_clip(pygame.Rect(x, y, TILE_WIDTH, TILE_HEIGHT))
         img = self.sheet.subsurface(self.sheet.get_clip())
+        
         return pygame.transform.scale(img, (width, height))
 
 class PacmanSprites(Spritesheet):
