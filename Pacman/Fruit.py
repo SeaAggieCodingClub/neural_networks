@@ -88,18 +88,16 @@ def update_fruit(fruit, pacman, pellets, fps, level):
     if fruit is None:
         return None
     
-    # Check to spawn fruit
-    if not Fruit.is_active:
-        if pellets in [70, 170]:
-            fruit.spawn()
-    else:
+    if Fruit.is_active:
         # Check to eat fruit
-        if pacman.pos.y == fruit.pos.y and abs(fruit.pos.x - pacman.pos.x) < 0.5:
+        if abs(pacman.pos.y - fruit.pos.y) < 0.5 and abs(fruit.pos.x - pacman.pos.x) < 0.5:
             fruit.eat()
         
         # Check to despawn fruit
         Fruit.active_seconds += 1 / fps # Update timer
         if Fruit.active_seconds > Fruit.active_timer:
             fruit.despawn()
-    
+    # Check to spawn fruit
+    elif pellets in [70, 170]:
+        fruit.spawn()
     return fruit

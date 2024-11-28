@@ -18,7 +18,7 @@ class Score:
         
         Score.l.append(self) # Add to list
     
-    def update_scores(fps):
+    def update_scores(fps):  # sourcery skip: instance-method-first-arg-name
         '''
         Displays all the active scores (from eating fruit or ghosts) and 
         updates the counter on each

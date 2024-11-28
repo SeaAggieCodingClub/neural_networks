@@ -15,7 +15,7 @@ class Pacman(Character):
     sprite_buffer_max = 2
     
     def __init__(self, speed):
-        self.speed = self.base_speed = speed
+        self.speed = self.base_speed = self.normal_speed = speed
         self.pos = Position(13.5, 23)
         self.dir = 'a'
         self.fill_sprites()
@@ -112,17 +112,23 @@ class Pacman(Character):
         self.image = self.sprites[self.current_sprite][self.current_sprite_index]
     
     def rotate_sprite(self):
-        '''Updates the rotation based on the direction facing'''
+        '''Updates the rotation based on the direction facing, and justifies position'''
         
+        curve_steps = 2 # Number of steps to take to center pacman after a turn
+        pos = self.pos.tile()
         self.image = self.sprites[self.current_sprite][self.current_sprite_index]
         if self.dir == 'w':
             self.image = pygame.transform.rotate(self.image, 0)
-        elif self.dir == 's':
-            self.image = pygame.transform.rotate(self.image, 180)
-        elif self.dir == 'd':
-            self.image = pygame.transform.rotate(self.image, 270)
+            self.pos.x += (pos.x - self.pos.x) / curve_steps # Curve turns
         elif self.dir == 'a':
             self.image = pygame.transform.rotate(self.image, 90)
+            self.pos.y += (pos.y - self.pos.y) / curve_steps # Curve turns
+        elif self.dir == 's':
+            self.image = pygame.transform.rotate(self.image, 180)
+            self.pos.x += (pos.x - self.pos.x) / curve_steps # Curve turns
+        elif self.dir == 'd':
+            self.image = pygame.transform.rotate(self.image, 270)
+            self.pos.y += (pos.y - self.pos.y) / curve_steps # Curve turns
     
     def control_pacman(self, next_move, grid):
         '''Changes the direction of pacman from the keyboard input, if move is invalid returns the next move'''
@@ -137,27 +143,23 @@ class Pacman(Character):
                 else:
                     self.dir = 'w'
                     next_move = None
-                    self.pos.x = pos.x
             if keys[pygame.K_a] or next_move == 'a':
                 if self.check_wall('a', grid):
                     next_move = 'a' # Set a buffer for the next move
                 else:
                     self.dir = 'a'
                     next_move = None
-                    self.pos.y = pos.y
             if keys[pygame.K_s] or next_move == 's':
                 if self.check_wall('s', grid):
                     next_move = 's' # Set a buffer for the next move
                 else:
                     self.dir = 's'
                     next_move = None
-                    self.pos.x = pos.x
             if keys[pygame.K_d] or next_move == 'd':
                 if self.check_wall('d', grid):
                     next_move = 'd' # Set a buffer for the next move
                 else:
                     self.dir = 'd'
                     next_move = None
-                    self.pos.y = pos.y
         
         return next_move

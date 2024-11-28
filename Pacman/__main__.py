@@ -1,5 +1,4 @@
 import pygame
-import time
 import copy
 from Ghosts import Ghost
 from Pacman import Pacman
@@ -264,13 +263,21 @@ def display_fruit(fruit):
         display(fruit.image, fruit.pos)
     for x in range(Fruit.q.qsize()):
         q = Fruit.q.queue
-        display(q[x], Position(x * 2 + 0.3, 31.5))
+        display(q[x], Position(x * 2 + 0.3, 31.6))
 
 def draw(pygame, pacman, ghosts, phase, seconds, fruit, ghost_killed=None):
-    '''Displays all entities such as characters and fruit'''
+    '''Displays all entities'''
     
+    # Scores
     for score in Score.l:
         display(score.image, score.pos)
+    
+    # Lives
+    life = Pacman(0)
+    life.image = pygame.transform.rotate(life.sprites["move"][1], 90)
+    for x in range(pacman.lives):
+        display(life.image, Position(26.75 - (x * 2 + 0.3), 31.6))
+    
     display_fruit(fruit)
     display_characters(pygame, pacman, ghosts, phase, seconds, ghost_killed)
     display(abyss, Position(-1.5, 14))
@@ -368,6 +375,7 @@ def __main__(grid_original):
     # Beginning variables for the whole game
     fps = 60 # Frames per second
     level = 1
+    do_wait = False
     
     pacman = Pacman(12.0 / fps) # Tiles per second / Frames per second = Tiles per frame
     speed_pacman = pacman.base_speed * 0.80
@@ -411,17 +419,16 @@ def __main__(grid_original):
                 Ghost('b', ghosts_speed),
                 Ghost('o', ghosts_speed)
             ]
-            if pellets < 100:
-                ghosts[0].in_chase = True
-                
+            
             # Wait to start level
-            while seconds < 1:
-                menu()
-                check_escape(pacman.score)
-                run_graph(grid, seconds)
-                draw(pygame, pacman, ghosts, phase, seconds, fruit)
-                clock.tick(fps)
-                seconds += 1 / fps
+            if do_wait:
+                while seconds < 1:
+                    menu()
+                    check_escape(pacman.score)
+                    run_graph(grid, seconds)
+                    draw(pygame, pacman, ghosts, phase, seconds, fruit)
+                    clock.tick(fps)
+                    seconds += 1 / fps
             
             # Run
             seconds = 0
@@ -445,7 +452,7 @@ def __main__(grid_original):
                 Score.update_scores(fps)
                 
                 # Pause for killed ghost
-                if ghost_killed is not None:
+                if ghost_killed is not None and do_wait:
                     killed_seconds = 0
                     while killed_seconds < 0.5:
                         menu()
@@ -478,17 +485,17 @@ def __main__(grid_original):
                 print("Score:", pacman.score)
             
             # End of life
-            seconds = 0
-            while seconds < 2:
-                menu()
-                check_escape(pacman.score)
-                run_graph(grid, seconds)
-                pacman.change_animation()
-                draw(pygame, pacman, ghosts, phase, seconds, fruit)
-                clock.tick(7)
-                seconds += 1 / 7
+            if do_wait:
+                seconds = 0
+                while seconds < 2:
+                    menu()
+                    check_escape(pacman.score)
+                    run_graph(grid, seconds)
+                    pacman.change_animation()
+                    draw(pygame, pacman, ghosts, phase, seconds, fruit)
+                    clock.tick(7)
+                    seconds += 1 / 7
             
-            time.sleep(2) # Wait for level to start
             pacman.respawn()
     
     update_high_score(pacman.score)

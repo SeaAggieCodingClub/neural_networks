@@ -49,7 +49,7 @@ class PacmanSprites(Spritesheet):
             case 2:
                 return (0, 2)
     
-    def get_death_loc(self, index):
+    def get_death_loc(self, index): # sourcery skip: assign-if-exp, inline-variable, reintroduce-else
         '''Returns the location of the death sprite on sprites_sheet.png '''
         
         if index > 10:
@@ -64,11 +64,7 @@ class PacmanSprites(Spritesheet):
         '''Returns a pygame image'''
         
         # Find location on the spritesheet
-        if type == "move":
-            loc = self.get_move_loc(index)
-        else:
-            loc = self.get_death_loc(index)
-        
+        loc = self.get_move_loc(index) if type == "move" else self.get_death_loc(index)
         return Spritesheet.get_image(self, loc, IMAGE_WIDTH, IMAGE_HEIGHT)
 
 class GhostSprites(Spritesheet):
