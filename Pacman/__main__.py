@@ -501,4 +501,7 @@ def __main__(grid_original):
     update_high_score(pacman.score)
     pygame.quit()
 
+class PacManGame():
+    pass
+
 __main__(grid)
