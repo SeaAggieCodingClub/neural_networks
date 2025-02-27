@@ -25,9 +25,10 @@ from gym import spaces
 class PacManGame(gym.Env):
     def __init__(self):
         super(PacManGame, self).__init__() # Create gym environment
-        pygame.init()
         
         # --------------------PYGAME SETUP--------------------
+        pygame.init()
+        
         # Get the screen resolution
         self.screen_info = pygame.display.Info()
         self.screen_width, screen_height = self.screen_info.current_w, self.screen_info.current_h
@@ -131,7 +132,7 @@ class PacManGame(gym.Env):
         ]
         
         # Starting grid layout
-        self.grid = {
+        self.starting_grid = {
             (0 , 0): 'wall', (0 , 1): 'wall', (0 , 2): 'wall', (0 , 3): 'wall', (0 , 4): 'wall', (0 , 5): 'wall', (0 , 6): 'wall', (0 , 7): 'wall', (0 , 8): 'wall', (0 , 9): 'wall', (0 , 10): '____', (0 , 11): '____', (0 , 12): '____', (0 , 13): 'wall', (0 , 14): '____', (0 , 15): 'wall', (0 , 16): '____', (0 , 17): '____', (0 , 18): '____', (0 , 19): 'wall', (0 , 20): 'wall', (0 , 21): 'wall', (0 , 22): 'wall', (0 , 23): 'wall', (0 , 24): 'wall', (0 , 25): 'wall', (0 , 26): 'wall', (0 , 27): 'wall', (0 , 28): 'wall', (0 , 29): 'wall', (0 , 30): 'wall', 
             (1 , 0): 'wall', (1 , 1): 'dot_', (1 , 2): 'dot_', (1 , 3): 'pdot', (1 , 4): 'dot_', (1 , 5): 'dot_', (1 , 6): 'dot_', (1 , 7): 'dot_', (1 , 8): 'dot_', (1 , 9): 'wall', (1 , 10): '____', (1 , 11): '____', (1 , 12): '____', (1 , 13): 'wall', (1 , 14): '____', (1 , 15): 'wall', (1 , 16): '____', (1 , 17): '____', (1 , 18): '____', (1 , 19): 'wall', (1 , 20): 'dot_', (1 , 21): 'dot_', (1 , 22): 'dot_', (1 , 23): 'pdot', (1 , 24): 'wall', (1 , 25): 'wall', (1 , 26): 'dot_', (1 , 27): 'dot_', (1 , 28): 'dot_', (1 , 29): 'dot_', (1 , 30): 'wall', 
             (2 , 0): 'wall', (2 , 1): 'dot_', (2 , 2): 'wall', (2 , 3): 'wall', (2 , 4): 'wall', (2 , 5): 'dot_', (2 , 6): 'wall', (2 , 7): 'wall', (2 , 8): 'dot_', (2 , 9): 'wall', (2 , 10): '____', (2 , 11): '____', (2 , 12): '____', (2 , 13): 'wall', (2 , 14): '____', (2 , 15): 'wall', (2 , 16): '____', (2 , 17): '____', (2 , 18): '____', (2 , 19): 'wall', (2 , 20): 'dot_', (2 , 21): 'wall', (2 , 22): 'wall', (2 , 23): 'dot_', (2 , 24): 'wall', (2 , 25): 'wall', (2 , 26): 'dot_', (2 , 27): 'wall', (2 , 28): 'wall', (2 , 29): 'dot_', (2 , 30): 'wall', 
@@ -161,6 +162,9 @@ class PacManGame(gym.Env):
             (26, 0): 'wall', (26, 1): 'dot_', (26, 2): 'dot_', (26, 3): 'pdot', (26, 4): 'dot_', (26, 5): 'dot_', (26, 6): 'dot_', (26, 7): 'dot_', (26, 8): 'dot_', (26, 9): 'wall', (26, 10): '____', (26, 11): '____', (26, 12): '____', (26, 13): 'wall', (26, 14): '____', (26, 15): 'wall', (26, 16): '____', (26, 17): '____', (26, 18): '____', (26, 19): 'wall', (26, 20): 'dot_', (26, 21): 'dot_', (26, 22): 'dot_', (26, 23): 'pdot', (26, 24): 'wall', (26, 25): 'wall', (26, 26): 'dot_', (26, 27): 'dot_', (26, 28): 'dot_', (26, 29): 'dot_', (26 , 30): 'wall', 
             (27, 0): 'wall', (27, 1): 'wall', (27, 2): 'wall', (27, 3): 'wall', (27, 4): 'wall', (27, 5): 'wall', (27, 6): 'wall', (27, 7): 'wall', (27, 8): 'wall', (27, 9): 'wall', (27, 10): '____', (27, 11): '____', (27, 12): '____', (27, 13): 'wall', (27, 14): '____', (27, 15): 'wall', (27, 16): '____', (27, 17): '____', (27, 18): '____', (27, 19): 'wall', (27, 20): 'wall', (27, 21): 'wall', (27, 22): 'wall', (27, 23): 'wall', (27, 24): 'wall', (27, 25): 'wall', (27, 26): 'wall', (27, 27): 'wall', (27, 28): 'wall', (27, 29): 'wall', (27 , 30): 'wall'
         }
+        
+        # Begin the game
+        self.run_begin_game()
     
     def get_high_score(self):
         '''Reads the latest high score from high_scores.txt'''
@@ -170,18 +174,19 @@ class PacManGame(gym.Env):
             if len(high_scores) > 0:
                 return int(high_scores[-1]) # Latest high score
     
-    def update_high_score(self, score):
+    def update_high_score(self):
         '''Updates the high score to high_scores.txt and keeps track of all previous high scores'''
+        
         with open("Pacman/high_scores.txt", 'a') as hs:
-            if score > self.get_high_score(): # If latest score is larger
-                hs.write('\r' + str(score)) # Replace score
+            if self.pacman.score > self.get_high_score(): # If latest score is larger
+                hs.write('\r' + str(self.pacman.score)) # Replace score
     
-    def check_escape(self, score):
+    def check_escape(self):
         '''Check if the escape key has been pressed so the user can exit the game'''
         
         keys = pygame.key.get_pressed()
         if keys[pygame.K_ESCAPE]:
-            self.update_high_score(score)
+            self.update_high_score()
             pygame.quit()
             exit()
     
@@ -253,9 +258,12 @@ class PacManGame(gym.Env):
         py = (18 * y) - 20
         return (px, py)
     
-    def run_graph(self, grid, seconds):
+    def run_graph(self):
         '''Displays the level and pellets'''
+        # Unpack variables
+        grid = self.grid
         
+        # Display grid
         for key in grid:
             x, y = key
             
@@ -265,7 +273,7 @@ class PacManGame(gym.Env):
                 
                 if grid[(x, y)] == 'dot_':
                     self.screen.blit(self.dot_,(px, py))
-                if grid[(x, y)] == 'pdot' and int(seconds * blink_rate) % 2 == 0:
+                if grid[(x, y)] == 'pdot' and int(self.seconds * blink_rate) % 2 == 0:
                     self.screen.blit(self.pdot,(px - 12, py - 12))
     
     def display(self, image, pos):
@@ -280,14 +288,16 @@ class PacManGame(gym.Env):
         image_pos_y = pos.y * 18 + offset_y - image.get_height() / 2
         self.screen.blit(image, (image_pos_x, image_pos_y)) # Display to screen
     
-    def display_characters(self, pygame, pacman, ghosts, phase, seconds, ghost_killed=None):
+    def display_characters(self, ghost_killed=None):
         '''Displays ghosts and pacman'''
+        # Unpack variables
+        pacman = self.pacman
         
         # Display ghosts
-        for ghost in ghosts:
+        for ghost in self.ghosts:
             if ghost_killed == ghost.id: # Do not display the killed ghost
                 continue
-            image = ghost.change_animation(phase, seconds)
+            image = ghost.change_animation(self.phase, self.seconds)
             self.display(image, ghost.pos)
             
         # Display pacman
@@ -296,8 +306,10 @@ class PacManGame(gym.Env):
         if pacman.image != None:    
             self.display(pacman.image, pacman.pos) # Display pacman
     
-    def display_fruit(self, fruit):
+    def display_fruit(self):
         '''Displays the fruit'''
+        # Unpack variables
+        fruit = self.fruit
         
         if fruit is not None and Fruit.is_active:
             self.display(fruit.image, fruit.pos)
@@ -305,13 +317,13 @@ class PacManGame(gym.Env):
             q = Fruit.q.queue
             self.display(q[x], Position(x * 2 + 0.3, 31.6))
     
-    def display_level(self, pacman, grid, seconds):
+    def display_level(self):
         '''Displays the background and checks for escape'''
         self.menu()
-        self.check_escape(pacman.score)
-        self.run_graph(grid, seconds)
+        self.check_escape()
+        self.run_graph()
     
-    def draw(self, pygame, pacman, ghosts, phase, seconds, fruit, ghost_killed=None):
+    def draw(self, pygame, ghost_killed=None):
         '''Displays all entities'''
         
         # Scores
@@ -321,28 +333,32 @@ class PacManGame(gym.Env):
         # Lives
         life = Pacman(0)
         life.image = pygame.transform.rotate(life.sprites["move"][1], 90)
-        for x in range(pacman.lives):
+        for x in range(self.pacman.lives):
             self.display(life.image, Position(26.75 - (x * 2 + 0.3), 31.6))
         
-        self.display_fruit(fruit)
-        self.display_characters(pygame, pacman, ghosts, phase, seconds, ghost_killed)
+        self.display_fruit()
+        self.display_characters(ghost_killed)
         self.display(self.abyss, Position(-1.5, 14))
         self.display(self.abyss, Position(28.4, 14))
         
         # Update pygame
         pygame.display.flip()
     
-    def get_pellets(self, grid):
+    def get_pellets(self):
         '''Returns the number of pellets on the board'''
         
         sum = 0
-        for i in grid.values(): # For each value
+        for i in self.grid.values(): # For each value
             if i == 'dot_': # If pellet
                 sum += 1 # Add to sum
         return sum
     
-    def update_pellets(self, pacman, grid, phase):
+    def update_pellets(self):
         '''Updates the phases and sounds associated with eating pellets'''
+        # Unpack variables
+        pacman = self.pacman
+        grid = self.grid
+        phase = self.phase
         
         # Pacman Eating Dots
         pos = pacman.pos.tile() # Centered position
@@ -359,25 +375,38 @@ class PacManGame(gym.Env):
                 Ghost.scared_seconds = 0
                 pacman.score += 40
         
+        # Pack variables
+        self.phase = phase
+        
         return phase
     
-    def phase_switch(self, phase, phase_rotation):
+    def phase_switch(self):
         '''Switches the ghost phase from chase to scatter and back again'''
+        # Unpack variables
+        phase = self.phase
+        phase_rotation = self.phase_rotation
         
         if phase == 's':
             phase = 'c'
         elif phase == 'c':
             phase = 's'
             phase_rotation += 1
+        
         return phase, phase_rotation
     
-    def update_phase(self, values, ghosts, pacman, grid, fps):
+    def update_phase(self):
         '''Updates the ghosts attributes according to each phase'''
+        # Unpack variables
+        ghosts = self.ghosts
+        fps = self.fps
+        phase = self.phase
+        phase_rotation = self.phase_rotation
+        level = self.level
+        phase_seconds = self.phase_seconds
         
-        (phase, phase_rotation, level, phase_seconds) = values # Store in tuple for a pass by reference
-        
+        # Update phase variables
         prev_phase = phase # Hold variable
-        phase = self.update_pellets(pacman, grid, phase) # Check pellets
+        phase = self.update_pellets() # Check pellets
         
         if phase == 'f':
             if phase != prev_phase: # If phase has changed
@@ -394,7 +423,6 @@ class PacManGame(gym.Env):
                 if abs(Ghost.scared_seconds - (time - flash_length * 10 + fi * flash_length)) < 1 / fps / 2:
                     Ghost.flash = not Ghost.flash # Toggle flash
             
-            
             Ghost.scared_seconds += 1 / fps # Increment timer
             if Ghost.scared_seconds > time:
                 prev_phase = 'f'
@@ -406,139 +434,179 @@ class PacManGame(gym.Env):
             # Phase timer
             phase_seconds += 1 / fps # Increment timer
             if level == 1 and phase_seconds > self.phase_lengths[0][phase][phase_rotation]:
-                phase, phase_rotation = self.phase_switch(phase, phase_rotation)
+                phase, phase_rotation = self.phase_switch()
             elif level < 4 and phase_seconds > self.phase_lengths[1][phase][phase_rotation]:
-                    phase, phase_rotation = self.phase_switch(phase, phase_rotation)
+                phase, phase_rotation = self.phase_switch()
             elif phase_seconds > self.phase_lengths[2][phase][phase_rotation]: # Level 5+
-                    phase, phase_rotation = self.phase_switch(phase, phase_rotation)
+                phase, phase_rotation = self.phase_switch()
             if phase != prev_phase: # If the phase has changed
                 phase_seconds = 0 # Reset seconds
                 Ghosts.update_phase_attributes(ghosts, phase, prev_phase) # Update ghosts
         
-        return (phase, phase_rotation, level, phase_seconds)
+        # Pack variables
+        self.phase = phase
+        self.phase_rotation = phase_rotation
+        self.phase_seconds = phase_seconds
+        self.level = level
     
-    def run(self, grid_original):
-        # Beginning variables for the whole game
-        fps = 60 # Frames per second
-        level = 1
-        do_wait = False
+    def step(self):
+        '''Each frame, for each life, for each level, for each game'''
+        # Unpack variables
+        pacman = self.pacman
+        grid = self.grid
+        fps = self.fps
         
-        pacman = Pacman(12.0 / fps) # Tiles per second / Frames per second = Tiles per frame
-        speed_pacman = pacman.base_speed * 0.80
-        speed_ghosts = speed_pacman * 0.80 # frightened ghosts are two-thirds of their normal speed
-        self.start_menu(speed_pacman, speed_ghosts, speed_ghosts*2/3) 
+        # Begin play
+        pygame.event.get() # Update events to quit
+        self.clock.tick(fps) # Cap the frame rate
+        self.display_level()
+        
+        # Update character data
+        pacman.control_pacman(self) # Direction controls
+        pacman.update_pacman(grid)
+        ghost_killed = Ghosts.update_ghosts(self)
+        update_fruit(self)
+        Score.update_scores(fps)
+        
+        # Pause for killed ghost
+        if ghost_killed is not None and self.do_wait:
+            killed_seconds = 0
+            while killed_seconds < 0.5:
+                self.display_level()
+                pacman.change_animation()
+                self.draw(pygame, ghost_killed)
+                self.clock.tick(fps)
+                killed_seconds += 1 / fps
+        
+        # Update board
+        self.seconds += 1 / fps # Increment timer
+        self.update_phase()
+        self.pellets = self.get_pellets()
+        if self.pellets == 0: # Winning condition
+            self.level += 1 # Increment level
+            print("Level Complete!")
+        
+        # Extra life check
+        if pacman.score // 10000 > pacman.extra_lives: # Every 10,000 points is a life
+            if pacman.lives < 5:
+                pacman.lives += 1
+                self.prev_lives = pacman.lives
+            pacman.extra_lives += 1
+        
+        # Death check
+        if self.prev_lives != pacman.lives: # When pacman loses a life
+            self.run_death_seq()
+            if pacman.lives > 0: # Game over check
+                self.run_begin_life()
+            else:
+                self.run_begin_game()
+        
+        # Next level check
+        elif pacman.lives == 0 or self.prev_level != self.level: # When pacman either dies or advances a level
+            if self.level < 255: # Game complete check
+                self.run_begin_level()
+            else:
+                self.run_begin_game()
+        
+        # Update display
+        self.draw(pygame)
+        print("Score:", pacman.score, "L", self.level)
+    
+    def run_begin_game(self):
+        '''Beginning variables for the whole game'''
+        
+        self.fps = 60 # Frames per second
+        self.level = 1
+        self.do_wait = True
+        
+        self.pacman = Pacman(12.0 / self.fps) # Tiles per second / Frames per second = Tiles per frame
+        self.speed_pacman = self.pacman.base_speed * 0.80
+        self.speed_ghosts = self.speed_pacman * 0.80 # frightened ghosts are two-thirds of their normal speed
+        
+        # Show the main menu
+        self.start_menu(self.speed_pacman, self.speed_ghosts, self.speed_ghosts*2/3) 
         
         # Loop across each level
-        running = True
-        while running:
-            # Variables for each level
-            grid = copy.deepcopy(grid_original)
-            pacman.lives = 3
-            pellets = 244
-            print("Level", level)
-            
-            # Change speeds based on level
-            if level == 1:
-                pacman.speed = pacman.base_speed * 0.80
-                ghosts_speed = pacman.speed * 0.80 # 80 % - Level 1
-            elif 2 <= level <= 4:
-                ghosts_speed = pacman.speed * .90 # 90 % - Levels 2-4
-            elif level <= 21:
-                pacman.speed = pacman.base_speed
-                ghosts_speed = pacman.speed # 100% - Levels 5+
-            else:
-                pacman.speed = pacman.base_speed * 0.90 # levels 21+
-            
-            # Loop across each life
-            prev_level = level
-            while pacman.lives > 0 and prev_level == level: # Break when pacman either dies or advances a level         
-                # Variables for each life
-                phase = 's' # Begin in scatter mode
-                next_move = None
-                seconds = phase_seconds = phase_rotation = 0
-                fruit = Fruit(level)
-                Fruit.is_active = False
-                Ghost.consec_eaten = 0
-                ghosts = [
-                    Ghost('r', ghosts_speed),
-                    Ghost('p', ghosts_speed),
-                    Ghost('b', ghosts_speed),
-                    Ghost('o', ghosts_speed)
-                ]
-                
-                # Wait to start level
-                if do_wait:
-                    while seconds < 1:
-                        self.display_level(pacman, grid, seconds)
-                        self.draw(pygame, pacman, ghosts, phase, seconds, fruit)
-                        self.clock.tick(fps)
-                        seconds += 1 / fps
-                
-                # Run
-                seconds = 0
-                prev_lives = pacman.lives
-                while prev_lives == pacman.lives: # Break when pacman loses a life
-                    for event in pygame.event.get():
-                        if event.type == pygame.QUIT:
-                            running = False
-                    
-                    self.display_level(pacman, grid, seconds)
-                    self.clock.tick(fps) # Cap the frame rate
-                    
-                    # Update character data
-                    next_move = pacman.control_pacman(next_move, grid) # Direction controls
-                    pacman.update_pacman(grid)
-                    ghost_killed = Ghosts.update_ghosts(ghosts, pacman, level, grid, phase, fps, seconds, pellets)
-                    update_fruit(fruit, pacman, pellets, fps, level)
-                    Score.update_scores(fps)
-                    
-                    # Pause for killed ghost
-                    if ghost_killed is not None and do_wait:
-                        killed_seconds = 0
-                        while killed_seconds < 0.5:
-                            self.display_level(pacman, grid, seconds)
-                            pacman.change_animation()
-                            self.draw(pygame, pacman, ghosts, phase, seconds, fruit, ghost_killed)
-                            self.clock.tick(fps)
-                            killed_seconds += 1 / fps
-                    
-                    # Update board
-                    seconds += 1 / fps # Increment timer
-                    phase_values = self.update_phase((phase, phase_rotation, level, phase_seconds), ghosts, pacman, grid, fps)
-                    phase, phase_rotation, level, phase_seconds = phase_values
-                    pellets = self.get_pellets(grid)
-                    if pellets == 0:
-                        level += 1 # Increment level
-                        print("Level Complete!")
-                        break
-                    
-                    # Extra life check
-                    if pacman.score // 10000 > pacman.extra_lives: # Every 10,000 points is a life
-                        if pacman.lives < 5:
-                            pacman.lives += 1
-                            prev_lives = pacman.lives
-                        pacman.extra_lives += 1
-                    
-                    # Update display
-                    self.draw(pygame, pacman, ghosts, phase, seconds, fruit)
-                    print("Score:", pacman.score)
-                
-                # End of life
-                if do_wait:
-                    seconds = 0
-                    while seconds < 2:
-                        self.display_level(pacman, grid, seconds)
-                        pacman.change_animation()
-                        self.draw(pygame, pacman, ghosts, phase, seconds, fruit)
-                        self.clock.tick(7)
-                        seconds += 1 / 7
-                
-                pacman.respawn()
-        
-        self.update_high_score(pacman.score)
-        pygame.quit()
+        self.run_begin_level()
     
+    def run_begin_level(self):
+        '''Beginning variables for each level'''
+        # Unpack variables
+        pacman = self.pacman
+        level = self.level
+        
+        # Set new variables
+        self.grid = copy.deepcopy(self.starting_grid)
+        self.pellets = 244
+        pacman.lives = 3
+        print("Level", level)
+        
+        # Change speeds based on level
+        if level == 1:
+            pacman.speed = pacman.base_speed * 0.80
+            self.ghosts_speed = pacman.speed * 0.80 # 80 % - Level 1
+        elif 2 <= level <= 4:
+            self.ghosts_speed = pacman.speed * .90 # 90 % - Levels 2-4
+        elif level <= 21:
+            pacman.speed = pacman.base_speed
+            self.ghosts_speed = pacman.speed # 100% - Levels 5+
+        else:
+            pacman.speed = pacman.base_speed * 0.90 # levels 21+
+        
+        # Loop across each life
+        self.prev_level = level
+        self.run_begin_life()
+    
+    def run_begin_life(self):
+        '''Beginning variables for each life'''
+        # Unpack variables
+        pacman = self.pacman
+        fps = self.fps
+        
+        # Set new variables
+        self.prev_lives = pacman.lives
+        self.phase = 's' # Begin in scatter mode
+        self.seconds = self.phase_seconds = self.phase_rotation = 0
+        self.next_move = None
+        self.fruit = Fruit(self.level)
+        self.ghosts = [
+            Ghost('r', self.ghosts_speed),
+            Ghost('p', self.ghosts_speed),
+            Ghost('b', self.ghosts_speed),
+            Ghost('o', self.ghosts_speed)
+        ]
+        Fruit.is_active = False
+        Ghost.consec_eaten = 0
+        
+        # Wait to start level
+        if self.do_wait:
+            seconds = 0
+            while seconds < 1:
+                self.display_level()
+                self.draw(pygame)
+                self.clock.tick(fps)
+                seconds += 1 / fps
+        pacman.respawn()
+    
+    def run_death_seq(self):
+        '''End of life'''
+        # Unpack variables
+        pacman = self.pacman
+        
+        if self.do_wait:
+            seconds = 0
+            while seconds < 2:
+                self.display_level()
+                pacman.change_animation()
+                self.draw(pygame)
+                self.clock.tick(7)
+                seconds += 1 / 7
+        pacman.respawn()
+    
+    def terminate(self):
+        self.update_high_score()
+        pygame.quit()
 
-# __main__(grid)
 PacMan = PacManGame()
-PacMan.run(PacMan.grid)
+while True:
+    PacMan.step()

@@ -130,8 +130,11 @@ class Pacman(Character):
             self.image = pygame.transform.rotate(self.image, 270)
             self.pos.y += (pos.y - self.pos.y) / curve_steps # Curve turns
     
-    def control_pacman(self, next_move, grid):
+    def control_pacman(self, game):
         '''Changes the direction of pacman from the keyboard input, if move is invalid returns the next move'''
+        # Unpack game variables
+        next_move = game.next_move
+        grid = game.grid
         
         # Direction controls
         pos = self.pos.tile()
@@ -162,4 +165,5 @@ class Pacman(Character):
                     self.dir = 'd'
                     next_move = None
         
+        game.next_move = next_move
         return next_move

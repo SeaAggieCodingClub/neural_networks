@@ -501,8 +501,17 @@ def move_normal(ghosts, ghost, pacman, grid, phase):
     # Move according to its speed and direction
     ghost.move(ghost.speed)
 
-def update_ghosts(ghosts, pacman, level, grid, phase, fps, seconds, pellets): 
+def update_ghosts(game): 
     '''Updates everything about the ghosts' data for every frame'''
+    # Unpack game variables
+    ghosts = game.ghosts
+    pacman = game.pacman
+    level = game.level
+    grid = game.grid
+    phase = game.phase
+    fps = game.fps
+    seconds = game.seconds
+    pellets = game.pellets
     
     # Specifics for each ghost
     update_personalities(ghosts, pacman, fps, pellets)
@@ -539,5 +548,11 @@ def update_ghosts(ghosts, pacman, level, grid, phase, fps, seconds, pellets):
             if 0 <= pos.x <= 27 and grid[pos.x, pos.y] == 'wall': # Check if pos is a wall
                 ghost.turn_around()
             try_exit(ghosts, level, seconds, pellets) # Check for the exit condition
+    
+    # Pack game variables
+    game.phase = phase
+    game.fps = fps
+    game.seconds = seconds
+    game.pellets = pellets
     
     return ghost_killed

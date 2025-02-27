@@ -46,7 +46,7 @@ class Fruit:
         
         Fruit.is_active = False
     
-    def get_id(self, level):
+    def get_id(self, level):  # sourcery skip: assign-if-exp, reintroduce-else
         '''Returns the fruit id based on the current level'''
         
         if level == 1:
@@ -78,12 +78,17 @@ class Fruit:
         Fruit.is_active = False
         Fruit.active_seconds = 0
     
-def update_fruit(fruit, pacman, pellets, fps, level):
+def update_fruit(game):
     '''
     The fruit appears after 70 dots are eaten and again after 170 dots 
     are eaten unless the first fruit is still there. 
     They will disappear if they are not eaten after 9-10 seconds.
     '''
+    # Unpack variables
+    fruit = game.fruit
+    pacman = game.pacman
+    pellets = game.pellets
+    fps = game.fps
     
     if fruit is None:
         return None
