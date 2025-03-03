@@ -32,6 +32,9 @@ class Position:
         
         return self.x == pos.x and self.y == pos.y
     
+    def to_tuple(self):
+        return (self.x, self.y)
+    
     def to_string(self):
         '''Prints the position as x, y values'''
         

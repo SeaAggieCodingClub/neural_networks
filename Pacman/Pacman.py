@@ -2,6 +2,7 @@ from Character import *
 from Position import *
 from Sprites import *
 import Sound
+import Fruit
 
 class Pacman(Character):
     lives = 3
@@ -130,7 +131,7 @@ class Pacman(Character):
             self.image = pygame.transform.rotate(self.image, 270)
             self.pos.y += (pos.y - self.pos.y) / curve_steps # Curve turns
     
-    def control_pacman(self, game):
+    def control_pacman(self, game, action=None):
         '''Changes the direction of pacman from the keyboard input, if move is invalid returns the next move'''
         # Unpack game variables
         next_move = game.next_move
@@ -140,25 +141,25 @@ class Pacman(Character):
         pos = self.pos.tile()
         if 0 <= pos.x <= 27:
             keys = pygame.key.get_pressed()
-            if keys[pygame.K_w] or next_move == 'w':
+            if keys[pygame.K_w] or 'w' in [action, next_move]:
                 if self.check_wall('w', grid):
                     next_move = 'w' # Set a buffer for the next move
                 else:
                     self.dir = 'w'
                     next_move = None
-            if keys[pygame.K_a] or next_move == 'a':
+            if keys[pygame.K_a] or 'a' in [action, next_move]:
                 if self.check_wall('a', grid):
                     next_move = 'a' # Set a buffer for the next move
                 else:
                     self.dir = 'a'
                     next_move = None
-            if keys[pygame.K_s] or next_move == 's':
+            if keys[pygame.K_s] or 's' in [action, next_move]:
                 if self.check_wall('s', grid):
                     next_move = 's' # Set a buffer for the next move
                 else:
                     self.dir = 's'
                     next_move = None
-            if keys[pygame.K_d] or next_move == 'd':
+            if keys[pygame.K_d] or 'd' in [action, next_move]:
                 if self.check_wall('d', grid):
                     next_move = 'd' # Set a buffer for the next move
                 else:
@@ -167,3 +168,19 @@ class Pacman(Character):
         
         game.next_move = next_move
         return next_move
+    
+    def dist_nearest_pellet(self, grid):
+        # CHANGE TO HAMMING DISTANCE
+        dists = []
+        for loc, val in grid.items(): # For each value
+            if val in ['dot_', 'pdot']: # If pellet
+                x, y = loc
+                dists += [self.pos.distance(Position(x, y))]
+        return min(dists) # Closest pellet
+
+    def dist_nearest_ghost(self, ghosts):
+        dists = [self.pos.distance(ghost.pos) for ghost in ghosts]
+        return min(dists) # Closest ghost
+    
+    def dist_fruit(self, fruit):
+        return self.pos.distance(fruit.pos) if fruit.is_active else 0 # CHANGE TO HAMMING DISTANCE
