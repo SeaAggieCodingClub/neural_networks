@@ -50,7 +50,7 @@ class PacManGame(gym.Env):
         
         # Color definitions
         self.black = (10, 10, 10)  # Changed to white color for clarity
-        self.blue = (32,36,221)
+        self.blue = (32, 36, 221)
         
         # Set clock speed
         self.clock = pygame.time.Clock()
@@ -136,7 +136,7 @@ class PacManGame(gym.Env):
             (26, 0): 'wall', (26, 1): 'dot_', (26, 2): 'dot_', (26, 3): 'pdot', (26, 4): 'dot_', (26, 5): 'dot_', (26, 6): 'dot_', (26, 7): 'dot_', (26, 8): 'dot_', (26, 9): 'wall', (26, 10): '____', (26, 11): '____', (26, 12): '____', (26, 13): 'wall', (26, 14): '____', (26, 15): 'wall', (26, 16): '____', (26, 17): '____', (26, 18): '____', (26, 19): 'wall', (26, 20): 'dot_', (26, 21): 'dot_', (26, 22): 'dot_', (26, 23): 'pdot', (26, 24): 'wall', (26, 25): 'wall', (26, 26): 'dot_', (26, 27): 'dot_', (26, 28): 'dot_', (26, 29): 'dot_', (26 , 30): 'wall', 
             (27, 0): 'wall', (27, 1): 'wall', (27, 2): 'wall', (27, 3): 'wall', (27, 4): 'wall', (27, 5): 'wall', (27, 6): 'wall', (27, 7): 'wall', (27, 8): 'wall', (27, 9): 'wall', (27, 10): '____', (27, 11): '____', (27, 12): '____', (27, 13): 'wall', (27, 14): '____', (27, 15): 'wall', (27, 16): '____', (27, 17): '____', (27, 18): '____', (27, 19): 'wall', (27, 20): 'wall', (27, 21): 'wall', (27, 22): 'wall', (27, 23): 'wall', (27, 24): 'wall', (27, 25): 'wall', (27, 26): 'wall', (27, 27): 'wall', (27, 28): 'wall', (27, 29): 'wall', (27 , 30): 'wall'
         }
-                
+        
         # Begin the game
         self.do_wait = do_wait
         self.do_render = do_render
@@ -146,6 +146,7 @@ class PacManGame(gym.Env):
         # --------------------NEURAL NETWORK SETUP--------------------
         self.update_state()
         self.action_space = spaces.Discrete(4) # W, A, S, and D controls
+        # self.prev_action = None
         # Observation space??????
     
     def update_state(self):
@@ -162,33 +163,36 @@ class PacManGame(gym.Env):
         #     "lives": None, # Int of lives
         #     "phase": None, # Int of phase key
         # }
+        pacman = self.pacman
         self.state = {
-            "pacman": self.pacman.pos.to_tuple(), # Position of pacman
-            "ghosts": { # Dict of Position of ghosts
-                "r": self.ghosts[0].pos.to_tuple(),
-                "p": self.ghosts[1].pos.to_tuple(),
-                "b": self.ghosts[2].pos.to_tuple(),
-                "o": self.ghosts[3].pos.to_tuple()
-            },
-            # "pellets": self.get_pellets_pos(), # Numpy array of Position of pellets
-            "fruit": Fruit.is_active, # Bool of whether fruit exist
-            "level": self.level, # Int of level
-            "score": self.pacman.score, # Int of current score
-            "lives": self.pacman.lives, # Int of lives
-            "phase": self.phase_keys[self.phase], # Int of phase key
+            "pacman": pacman.get_state(), # Position of pacman
+            # "ghosts": { # Dict of Position of ghosts
+            #     "r": self.ghosts[0].pos.to_tuple(),
+            #     "p": self.ghosts[1].pos.to_tuple(),
+            #     "b": self.ghosts[2].pos.to_tuple(),
+            #     "o": self.ghosts[3].pos.to_tuple()
+            # },
+            # "pellets": pacman.dist_nearest_pellets(self.grid, 10), # Numpy array of Position of pellets
+            # "fruit": Fruit.is_active, # Bool of whether fruit exist
+            # "level": self.level, # Int of level
+            # "score": self.pacman.score, # Int of current score
+            # "lives": self.pacman.lives, # Int of lives
+            # "phase": onehot(self.phase_keys[self.phase], self.phase_keys), # Int of phase key
+            "wall": pacman.check_wall(pacman.dir, self.grid)
         }
     
     def print_state(self):
         state = self.state
         pacman = state['pacman']
-        print(f"Pacman: ({pacman.x:4.2f}, {pacman.y:4.2f})")
+        print(f"Pacman: ({pacman[0]:4.2f}, {pacman[1]:4.2f})")
         # print("Ghosts:", ((f": ({ghost.x:4.2f}, {ghost.y:4.2f})" + "\n        " for ghost in state['ghosts'])))
-        print(f"Pellets: {self.get_pellets()}")
+        print(f"Pellets: {state['pellets']}")
         print(f"Fruit: {"Active" if state['fruit'] else "Inactive"}")
         print(f"Level: {state['level']}")
         print(f"Score: {state['score']}")
         print(f"Lives: {state['lives']}")
         print(f"Phase: {state['phase']}")
+        print(f"Wall: {state['wall']}")
     
     def flatten_state(self):
         flat_list = []
@@ -413,7 +417,7 @@ class PacManGame(gym.Env):
                 pellets_pos += [Position(x, y)]
         return np.array(pellets_pos)
     
-    def update_pellets(self):
+    def update_pellets(self, reward):
         '''Updates the phases and sounds associated with eating pellets'''
         # Unpack variables
         pacman = self.pacman
@@ -428,8 +432,10 @@ class PacManGame(gym.Env):
             if grid_value in ['dot_', 'pdot']: # If position is on any dot
                 grid[27 - pos.x, pos.y] = '____' # Change dot into empty tile
                 pacman.pause = True
-                Sound.play_waka(True) # Play sound
+                if self.do_render:
+                    Sound.play_waka(True) # Play sound
                 pacman.score += 10
+                reward += 30
             if grid_value == 'pdot':
                 phase = 'f' # Change phase to frightened mode
                 Ghost.scared_seconds = 0
@@ -438,7 +444,7 @@ class PacManGame(gym.Env):
         # Pack variables
         self.phase = phase
         
-        return phase
+        return phase, reward
     
     def phase_switch(self):
         '''Switches the ghost phase from chase to scatter and back again'''
@@ -454,7 +460,7 @@ class PacManGame(gym.Env):
         
         return phase, phase_rotation
     
-    def update_phase(self):
+    def update_phase(self, reward):
         '''Updates the ghosts attributes according to each phase'''
         # Unpack variables
         ghosts = self.ghosts
@@ -466,7 +472,7 @@ class PacManGame(gym.Env):
         
         # Update phase variables
         prev_phase = phase # Hold variable
-        phase = self.update_pellets() # Check pellets
+        phase, reward = self.update_pellets(reward) # Check pellets
         
         if phase == 'f':
             if phase != prev_phase: # If phase has changed
@@ -508,8 +514,10 @@ class PacManGame(gym.Env):
         self.phase_rotation = phase_rotation
         self.phase_seconds = phase_seconds
         self.level = level
+        
+        return reward
     
-    def step(self, action=None):
+    def step(self, action=None, prev_action=None, prev_pos=None):
         '''Each frame, for each life, for each level, for each game'''
         # Unpack variables
         pacman = self.pacman
@@ -532,7 +540,7 @@ class PacManGame(gym.Env):
         # Update character data
         pacman.control_pacman(self, action) # Direction controls
         pacman.update_pacman(grid)
-        ghost_killed = Ghosts.update_ghosts(self)
+        ghost_killed = False#Ghosts.update_ghosts(self)
         update_fruit(self)
         Score.update_scores(fps)
         
@@ -548,7 +556,7 @@ class PacManGame(gym.Env):
         
         # Update board
         self.seconds += 1 / fps # Increment timer
-        self.update_phase()
+        reward = self.update_phase(reward)
         self.pellets = self.get_pellets()
         if self.pellets == 0: # Winning condition
             self.level += 1 # Increment level
@@ -563,7 +571,7 @@ class PacManGame(gym.Env):
         
         # Death check
         if self.prev_lives != pacman.lives: # When pacman loses a life
-            reward -= 1000 # Huge penalty for dying
+            reward -= 10 # Huge penalty for dying
             self.run_death_seq()
             if pacman.lives > 0: # Game over check
                 self.run_begin_life()
@@ -578,24 +586,51 @@ class PacManGame(gym.Env):
         elif self.prev_level != self.level: # When pacman advances a level
             self.run_begin_level()
         
-        # Update reward
-        reward += pacman.score - prev_score # Based on score received in this step
-        next_dist_nearest_pellet = pacman.dist_nearest_ghost(self.ghosts)
-        next_dist_nearest_ghost = pacman.dist_nearest_pellet(grid)
-        next_dist_nearest_fruit = pacman.dist_fruit(self.fruit)
-        reward += next_dist_nearest_pellet - pacman.prev_dist_nearest_pellet
-        reward += next_dist_nearest_ghost - pacman.prev_dist_nearest_ghost
-        reward += next_dist_nearest_fruit - pacman.prev_dist_nearest_fruit
-        pacman.prev_dist_nearest_pellet = next_dist_nearest_pellet
-        pacman.prev_dist_nearest_ghost = next_dist_nearest_ghost
-        pacman.prev_dist_nearest_fruit = next_dist_nearest_fruit
-        
-        # Return network variables
-        self.update_state()
-        # self.print_state()
-        # print("Score:", pacman.score, "| Action:", action, "| Reward:", reward)
-        # print(self.flatten_state())
-        return self.flatten_state(), reward, done
+        if action != None:
+            # Update reward
+            # reward += pacman.score - prev_score # Based on score received in this step
+            next_dist_nearest_pellet = pacman.dist_nearest_pellets(grid, 1)[0]
+            # next_dist_nearest_ghost = pacman.dist_nearest_ghost(self.ghosts)
+            # next_dist_nearest_fruit = pacman.dist_fruit(self.fruit)
+            reward += (pacman.prev_dist_nearest_pellet - next_dist_nearest_pellet) * 5
+            # reward += 10 if (next_dist_nearest_ghost > pacman.prev_dist_nearest_ghost) else -10
+            # reward += 10 if (next_dist_nearest_fruit < pacman.prev_dist_nearest_fruit) else -10
+            pacman.prev_dist_nearest_pellet = next_dist_nearest_pellet
+            # pacman.prev_dist_nearest_ghost = next_dist_nearest_ghost
+            # pacman.prev_dist_nearest_fruit = next_dist_nearest_fruit
+            
+            reversed = False
+            match prev_action:
+                case 'w':
+                    reversed = action == 's'
+                case 'a':
+                    reversed = action == 'd'
+                case 's':
+                    reversed = action == 'w'
+                case 'd':
+                    reversed = action == 'a'
+            
+            # if pacman.check_wall(pacman.dir, grid):
+            #     reward -= 15
+            # else:
+            #     reward += 5
+            if reversed:
+                reward -= 10
+            else:
+                reward += 2
+            # if pacman.pos == prev_pos:
+            #     reward -= 10
+            # else:
+            #     reward += 2
+            # print(reward, end='  ')
+            
+            # Return network variables
+            self.update_state()
+            # self.print_state()
+            # print("Score:", pacman.score, "| Action:", action, "| Reward:", reward)
+            # print(self.flatten_state())
+            return self.flatten_state(), reward, done
+        return done
     
     def run_begin_game(self):
         '''Beginning variables for the whole game'''

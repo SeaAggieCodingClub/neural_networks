@@ -2,7 +2,7 @@ from Character import *
 from Position import *
 from Sprites import *
 import Sound
-import Fruit
+import numpy as np
 
 class Pacman(Character):
     lives = 3
@@ -47,7 +47,7 @@ class Pacman(Character):
         
         self.image = self.sprites["move"][0]
     
-    def kill(self):
+    def kill(self, do_render):
         '''Decrease number of lives and activate the death animation'''
         
         self.is_dead = True
@@ -58,7 +58,8 @@ class Pacman(Character):
         self.current_sprite_buffer = 0
         self.sprite_buffer_max = 0
         
-        Sound.play_death_sound()
+        if do_render:
+            Sound.play_death_sound()
     
     def respawn(self):
         '''Reset the position and sprites'''
@@ -131,6 +132,26 @@ class Pacman(Character):
             self.image = pygame.transform.rotate(self.image, 270)
             self.pos.y += (pos.y - self.pos.y) / curve_steps # Curve turns
     
+    def get_choices(self, grid):
+        '''Returns a list of valid moves, for tiles that are not walls'''
+        
+        choices = []
+        pos = self.pos.tile()
+        if not (0 <= pos.x <= 27 and 0 <= pos.y <= 30): # If grid indices are out of range
+            return np.array([0, 1, 0, 1]) # Return as warp tunnel choices
+        
+        positions = [ # The positions of the 4 adjoining tiles in the current tile
+            Position(pos.x, pos.y - 1), 
+            Position(pos.x + 1, pos.y), 
+            Position(pos.x, pos.y + 1), 
+            Position(pos.x - 1, pos.y)
+        ]
+        
+        for position in positions:
+            choices += [0] if grid[position.x, position.y] == 'wall' else [1] # Check valid moves
+        
+        return np.array(choices)
+    
     def control_pacman(self, game, action=None):
         '''Changes the direction of pacman from the keyboard input, if move is invalid returns the next move'''
         # Unpack game variables
@@ -169,15 +190,15 @@ class Pacman(Character):
         game.next_move = next_move
         return next_move
     
-    def dist_nearest_pellet(self, grid):
+    def dist_nearest_pellets(self, grid, count):
         # CHANGE TO HAMMING DISTANCE
         dists = []
         for loc, val in grid.items(): # For each value
             if val in ['dot_', 'pdot']: # If pellet
                 x, y = loc
                 dists += [self.pos.distance(Position(x, y))]
-        return min(dists) # Closest pellet
-
+        return np.array(sorted(dists)[:count]) # n closest pellets
+    
     def dist_nearest_ghost(self, ghosts):
         dists = [self.pos.distance(ghost.pos) for ghost in ghosts]
         return min(dists) # Closest ghost

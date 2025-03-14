@@ -529,7 +529,7 @@ def update_ghosts(game):
                 Score("Ghost", ghost.pos.tile(), Ghost.consec_eaten - 1) # Display score
             else:
                 # Kill pacman and move on to next life
-                pacman.kill()
+                pacman.kill(game.do_render)
                 return
         if ghost.is_active: 
             if ghost.is_in_house(): # If the ghost is waiting to exit the house

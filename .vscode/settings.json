@@ -11,6 +11,7 @@
         "galaxian",
         "movep",
         "ONEDNN",
+        "onehot",
         "pacu",
         "pdot",
         "pygame",

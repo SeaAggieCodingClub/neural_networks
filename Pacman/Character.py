@@ -1,11 +1,19 @@
 from Position import *
 import pygame
+import __main__
 
 # Tunnels on either side for the characters to traverse, x pos
 warp_tunnels = {
     'right':-1,
     'left':28
 }
+
+def onehot(value, categories):
+    categories_list = list(categories)[:-1]
+    encoded = [0 for _ in categories_list]
+    if value in categories_list:
+        encoded[categories_list.index(value)] = 1
+    return encoded
 
 # Parent class over Pacman and Ghosts
 class Character(pygame.sprite.Sprite):
@@ -17,6 +25,9 @@ class Character(pygame.sprite.Sprite):
     base_speed = None
     is_active = True
     is_dead = False
+    
+    def get_state(self):
+        return self.pos.to_tuple() + tuple(onehot(self.dir, __main__.action_keys.values())) # ADD SPEED
     
     def move(self, speed):
         '''Adds a given magnitude to the position of the character depending on the direction'''
@@ -66,4 +77,5 @@ class Character(pygame.sprite.Sprite):
             if grid[pos.x, pos.y] == 'wall': # Check if pos is a wall
                 return True
         return False
+
 
