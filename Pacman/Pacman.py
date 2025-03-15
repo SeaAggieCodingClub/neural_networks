@@ -137,7 +137,7 @@ class Pacman(Character):
         
         choices = []
         pos = self.pos.tile()
-        if not (0 <= pos.x <= 27 and 0 <= pos.y <= 30): # If grid indices are out of range
+        if not (1 <= pos.x <= 26 and 0 <= pos.y <= 30): # If grid indices are out of range
             return np.array([0, 1, 0, 1]) # Return as warp tunnel choices
         
         positions = [ # The positions of the 4 adjoining tiles in the current tile
@@ -151,6 +151,61 @@ class Pacman(Character):
             choices += [0] if grid[position.x, position.y] == 'wall' else [1] # Check valid moves
         
         return np.array(choices)
+    
+    def has_reversed(self, action, prev_action):
+        # action = self.dir
+        reversed = False
+        match prev_action:
+            case 'w':
+                reversed = action == 's'
+            case 'a':
+                reversed = action == 'd'
+            case 's':
+                reversed = action == 'w'
+            case 'd':
+                reversed = action == 'a'
+        return reversed
+    
+    # def is_on_decision_tile(self, decision_tiles): # NOT USING
+    #     '''
+    #     Returns whether on a decision tile
+    #     '''
+        
+    #     # Check for decision tiles
+    #     pos = self.pos.tile()
+    #     return any(
+    #         pos.x == x and pos.y in y_list for x, y_list in decision_tiles.items()
+    #     )
+    
+    # def dist_nearest_decision_tile(self, decision_tiles):
+    #     '''
+    #     Finds the closest decision tile, returns its position and distance
+    #     '''
+    #     min = 100
+    #     for x, y_list in decision_tiles.items():
+    #         for y in y_list:
+    #             decision_tile_pos = Position(x, y)
+    #             dist = self.pos.distance(decision_tile_pos)
+    #             if dist < min:
+    #                 min = dist
+    #                 return decision_tile_pos, min
+    #     return min(dists),  # Closest decision tile
+    
+    def dist_nearest_pellets(self, grid, count):
+        # CHANGE TO HAMMING DISTANCE
+        dists = []
+        for loc, val in grid.items(): # For each value
+            if val in ['dot_', 'pdot']: # If pellet
+                x, y = loc
+                dists += [self.pos.distance(Position(x, y))]
+        return np.array(sorted(dists)[:count]) # n closest pellets
+    
+    def dist_nearest_ghost(self, ghosts):
+        dists = [self.pos.distance(ghost.pos) for ghost in ghosts]
+        return min(dists) # Closest ghost
+    
+    def dist_fruit(self, fruit):
+        return self.pos.distance(fruit.pos) if fruit.is_active else 0 # CHANGE TO HAMMING DISTANCE
     
     def control_pacman(self, game, action=None):
         '''Changes the direction of pacman from the keyboard input, if move is invalid returns the next move'''
@@ -189,19 +244,3 @@ class Pacman(Character):
         
         game.next_move = next_move
         return next_move
-    
-    def dist_nearest_pellets(self, grid, count):
-        # CHANGE TO HAMMING DISTANCE
-        dists = []
-        for loc, val in grid.items(): # For each value
-            if val in ['dot_', 'pdot']: # If pellet
-                x, y = loc
-                dists += [self.pos.distance(Position(x, y))]
-        return np.array(sorted(dists)[:count]) # n closest pellets
-    
-    def dist_nearest_ghost(self, ghosts):
-        dists = [self.pos.distance(ghost.pos) for ghost in ghosts]
-        return min(dists) # Closest ghost
-    
-    def dist_fruit(self, fruit):
-        return self.pos.distance(fruit.pos) if fruit.is_active else 0 # CHANGE TO HAMMING DISTANCE

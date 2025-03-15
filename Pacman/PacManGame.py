@@ -152,7 +152,7 @@ class PacManGame(gym.Env):
     def update_state(self):
         # Assuming it is optimal to store all values in a flattened array for the NN input.
         # Consider using the positions of the CLOSEST 10 pellets instead of ALL
-        
+
         # self.state = {
         #     "pacman": None, # Position of pacman
         #     "ghosts": None, # Dict of Position of ghosts
@@ -164,8 +164,11 @@ class PacManGame(gym.Env):
         #     "phase": None, # Int of phase key
         # }
         pacman = self.pacman
+        pos = pacman.pos.tile().to_tuple()
+        tracker = self.pos_tracker[pos] if pos in self.pos_tracker.keys() else 0
         self.state = {
             "pacman": pacman.get_state(), # Position of pacman
+            "tracker": tracker,
             # "ghosts": { # Dict of Position of ghosts
             #     "r": self.ghosts[0].pos.to_tuple(),
             #     "p": self.ghosts[1].pos.to_tuple(),
@@ -540,19 +543,19 @@ class PacManGame(gym.Env):
         # Update character data
         pacman.control_pacman(self, action) # Direction controls
         pacman.update_pacman(grid)
-        ghost_killed = False#Ghosts.update_ghosts(self)
+        ghost_killed = None#Ghosts.update_ghosts(self)
         update_fruit(self)
         Score.update_scores(fps)
         
         # Pause for killed ghost
-        if ghost_killed is not None and self.do_wait:
-            killed_seconds = 0
-            while killed_seconds < 0.5:
-                self.display_level()
-                pacman.change_animation()
-                self.draw(pygame, ghost_killed)
-                self.clock.tick(fps)
-                killed_seconds += 1 / fps
+        # if ghost_killed is not None and self.do_wait:
+        #     killed_seconds = 0
+        #     while killed_seconds < 0.5:
+        #         self.display_level()
+        #         pacman.change_animation()
+        #         self.draw(pygame, ghost_killed)
+        #         self.clock.tick(fps)
+        #         killed_seconds += 1 / fps
         
         # Update board
         self.seconds += 1 / fps # Increment timer
@@ -586,49 +589,41 @@ class PacManGame(gym.Env):
         elif self.prev_level != self.level: # When pacman advances a level
             self.run_begin_level()
         
+        # Track positions across the level
+        pos = pacman.pos.tile().to_tuple()
+        if pos in self.pos_tracker.keys():
+            self.pos_tracker[pos] += 1
+        else:
+            self.pos_tracker[pos] = 0
+        
         if action != None:
             # Update reward
             # reward += pacman.score - prev_score # Based on score received in this step
-            next_dist_nearest_pellet = pacman.dist_nearest_pellets(grid, 1)[0]
+            # next_dist_nearest_pellet = pacman.dist_nearest_pellets(grid, 1)[0]
             # next_dist_nearest_ghost = pacman.dist_nearest_ghost(self.ghosts)
             # next_dist_nearest_fruit = pacman.dist_fruit(self.fruit)
-            reward += (pacman.prev_dist_nearest_pellet - next_dist_nearest_pellet) * 5
+            # reward += (pacman.prev_dist_nearest_pellet - next_dist_nearest_pellet) * 3
             # reward += 10 if (next_dist_nearest_ghost > pacman.prev_dist_nearest_ghost) else -10
             # reward += 10 if (next_dist_nearest_fruit < pacman.prev_dist_nearest_fruit) else -10
-            pacman.prev_dist_nearest_pellet = next_dist_nearest_pellet
+            # pacman.prev_dist_nearest_pellet = next_dist_nearest_pellet
             # pacman.prev_dist_nearest_ghost = next_dist_nearest_ghost
             # pacman.prev_dist_nearest_fruit = next_dist_nearest_fruit
             
-            reversed = False
-            match prev_action:
-                case 'w':
-                    reversed = action == 's'
-                case 'a':
-                    reversed = action == 'd'
-                case 's':
-                    reversed = action == 'w'
-                case 'd':
-                    reversed = action == 'a'
-            
-            # if pacman.check_wall(pacman.dir, grid):
-            #     reward -= 15
-            # else:
-            #     reward += 5
+            reversed = pacman.has_reversed(action, prev_action)
             if reversed:
-                reward -= 10
+                reward -= 5
             else:
-                reward += 2
-            # if pacman.pos == prev_pos:
-            #     reward -= 10
-            # else:
-            #     reward += 2
-            # print(reward, end='  ')
+                reward += 10
+            reward += (2 - self.pos_tracker[pos]) * 3
+            print("T", self.pos_tracker[pos], f"{reward:4d}", "R" if reversed else '')
+            
             
             # Return network variables
             self.update_state()
             # self.print_state()
             # print("Score:", pacman.score, "| Action:", action, "| Reward:", reward)
             # print(self.flatten_state())
+            # print("R", reward)
             return self.flatten_state(), reward, done
         return done
     
@@ -636,7 +631,7 @@ class PacManGame(gym.Env):
         '''Beginning variables for the whole game'''
         
         self.level = 1
-        self.pacman = Pacman(12.0 / self.fps) # Tiles per second / Frames per second = Tiles per frame
+        self.pacman = Pacman(13.0 / self.fps) # Tiles per second / Frames per second = Tiles per frame
         self.speed_pacman = self.pacman.base_speed * 0.80
         self.speed_ghosts = self.speed_pacman * 0.80 # frightened ghosts are two-thirds of their normal speed
         
@@ -655,6 +650,7 @@ class PacManGame(gym.Env):
         
         # Set new variables
         self.grid = copy.deepcopy(self.starting_grid)
+        self.pos_tracker = {}
         self.pellets = 244
         pacman.lives = 3
         # print("Level", level)
@@ -701,13 +697,13 @@ class PacManGame(gym.Env):
         Ghost.consec_eaten = 0
         
         # Wait to start level
-        if self.do_wait:
-            seconds = 0
-            while seconds < 1:
-                self.display_level()
-                self.draw(pygame)
-                self.clock.tick(fps)
-                seconds += 1 / fps
+        # if self.do_wait:
+        #     seconds = 0
+        #     while seconds < 1:
+        #         self.display_level()
+        #         self.draw(pygame)
+        #         self.clock.tick(fps)
+        #         seconds += 1 / fps
         pacman.respawn()
     
     def run_death_seq(self):
