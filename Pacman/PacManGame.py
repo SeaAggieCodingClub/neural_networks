@@ -1,3 +1,4 @@
+from queue import Queue
 import pygame
 import copy
 import Ghosts
@@ -7,10 +8,12 @@ from Pacman import Pacman
 from Fruit import Fruit, update_fruit
 from Score import Score
 from Position import *
+from Path_Network import Node, Path_Network
 
 import numpy as np
 import gym
 from gym import spaces
+from tensorflow.keras.utils import to_categorical # type: ignore
 
 class PacManGame(gym.Env):
     def __init__(self, fps=60, do_wait=True, do_render=True):
@@ -55,12 +58,30 @@ class PacManGame(gym.Env):
         # Set clock speed
         self.clock = pygame.time.Clock()
         
-        # Duration for ghost phases
+        # Keys
+        self.dir_keys = {
+            'w': 0,
+            'a': 1,
+            's': 2,
+            'd': 3
+        }
         self.phase_keys = {
             's': 0, 
             'c': 1,
             'f': 2
         }
+        self.grid_keys = {
+            'pdot': 0,
+            'dot_': 1, 
+            '____': 2,
+            'wall': 3,
+            'pcmn': 4
+        }
+        self.one_hot_fruit = to_categorical([0, 1], num_classes=2)
+        self.one_hot_phase = to_categorical([0, 1, 2], num_classes=3)
+        self.one_hot_dir = to_categorical([0, 1, 2, 3], num_classes=4)
+
+        # Duration for ghost phases
         self.phase_lengths = [{ # Level 1
                 'c':[
                     20,
@@ -134,8 +155,12 @@ class PacManGame(gym.Env):
             (24, 0): 'wall', (24, 1): 'dot_', (24, 2): 'wall', (24, 3): 'wall', (24, 4): 'wall', (24, 5): 'dot_', (24, 6): 'wall', (24, 7): 'wall', (24, 8): 'dot_', (24, 9): 'wall', (24, 10): '____', (24, 11): '____', (24, 12): '____', (24, 13): 'wall', (24, 14): '____', (24, 15): 'wall', (24, 16): '____', (24, 17): '____', (24, 18): '____', (24, 19): 'wall', (24, 20): 'dot_', (24, 21): 'wall', (24, 22): 'wall', (24, 23): 'dot_', (24, 24): 'dot_', (24, 25): 'dot_', (24, 26): 'dot_', (24, 27): 'wall', (24, 28): 'wall', (24, 29): 'dot_', (24 , 30): 'wall', 
             (25, 0): 'wall', (25, 1): 'dot_', (25, 2): 'wall', (25, 3): 'wall', (25, 4): 'wall', (25, 5): 'dot_', (25, 6): 'wall', (25, 7): 'wall', (25, 8): 'dot_', (25, 9): 'wall', (25, 10): '____', (25, 11): '____', (25, 12): '____', (25, 13): 'wall', (25, 14): '____', (25, 15): 'wall', (25, 16): '____', (25, 17): '____', (25, 18): '____', (25, 19): 'wall', (25, 20): 'dot_', (25, 21): 'wall', (25, 22): 'wall', (25, 23): 'dot_', (25, 24): 'wall', (25, 25): 'wall', (25, 26): 'dot_', (25, 27): 'wall', (25, 28): 'wall', (25, 29): 'dot_', (25 , 30): 'wall', 
             (26, 0): 'wall', (26, 1): 'dot_', (26, 2): 'dot_', (26, 3): 'pdot', (26, 4): 'dot_', (26, 5): 'dot_', (26, 6): 'dot_', (26, 7): 'dot_', (26, 8): 'dot_', (26, 9): 'wall', (26, 10): '____', (26, 11): '____', (26, 12): '____', (26, 13): 'wall', (26, 14): '____', (26, 15): 'wall', (26, 16): '____', (26, 17): '____', (26, 18): '____', (26, 19): 'wall', (26, 20): 'dot_', (26, 21): 'dot_', (26, 22): 'dot_', (26, 23): 'pdot', (26, 24): 'wall', (26, 25): 'wall', (26, 26): 'dot_', (26, 27): 'dot_', (26, 28): 'dot_', (26, 29): 'dot_', (26 , 30): 'wall', 
-            (27, 0): 'wall', (27, 1): 'wall', (27, 2): 'wall', (27, 3): 'wall', (27, 4): 'wall', (27, 5): 'wall', (27, 6): 'wall', (27, 7): 'wall', (27, 8): 'wall', (27, 9): 'wall', (27, 10): '____', (27, 11): '____', (27, 12): '____', (27, 13): 'wall', (27, 14): '____', (27, 15): 'wall', (27, 16): '____', (27, 17): '____', (27, 18): '____', (27, 19): 'wall', (27, 20): 'wall', (27, 21): 'wall', (27, 22): 'wall', (27, 23): 'wall', (27, 24): 'wall', (27, 25): 'wall', (27, 26): 'wall', (27, 27): 'wall', (27, 28): 'wall', (27, 29): 'wall', (27 , 30): 'wall'
+            (27, 0): 'wall', (27, 1): 'wall', (27, 2): 'wall', (27, 3): 'wall', (27, 4): 'wall', (27, 5): 'wall', (27, 6): 'wall', (27, 7): 'wall', (27, 8): 'wall', (27, 9): 'wall', (27, 10): '____', (27, 11): '____', (27, 12): '____', (27, 13): 'wall', (27, 14): '____', (27, 15): 'wall', (27, 16): '____', (27, 17): '____', (27, 18): '____', (27, 19): 'wall', (27, 20): 'wall', (27, 21): 'wall', (27, 22): 'wall', (27, 23): 'wall', (27, 24): 'wall', (27, 25): 'wall', (27, 26): 'wall', (27, 27): 'wall', (27, 28): 'wall', (27, 29): 'wall', (27 , 30): 'wall',
         }
+        self.network = Path_Network(self.starting_grid, run_from_config=True)
+        
+        # self.starting_grid[(-1, 14)] = '____'
+        # self.starting_grid[(28, 14)] = '____'
         
         # Begin the game
         self.do_wait = do_wait
@@ -151,38 +176,71 @@ class PacManGame(gym.Env):
     
     def update_state(self):
         # Assuming it is optimal to store all values in a flattened array for the NN input.
-        # Consider using the positions of the CLOSEST 10 pellets instead of ALL
-
-        # self.state = {
-        #     "pacman": None, # Position of pacman
-        #     "ghosts": None, # Dict of Position of ghosts
-        #     "pellets": None, # Numpy array of Position of pellets
-        #     "fruit": None, # Bool of whether fruit exist
-        #     "level": None, # Int of level
-        #     "score": None, # Int of current score
-        #     "lives": None, # Int of lives
-        #     "phase": None, # Int of phase key
-        # }
+        
         pacman = self.pacman
-        pos = pacman.pos.tile().to_tuple()
-        tracker = self.pos_tracker[pos] if pos in self.pos_tracker.keys() else 0
-        self.state = {
-            "pacman": pacman.get_state(), # Position of pacman
-            "tracker": tracker,
-            # "ghosts": { # Dict of Position of ghosts
-            #     "r": self.ghosts[0].pos.to_tuple(),
-            #     "p": self.ghosts[1].pos.to_tuple(),
-            #     "b": self.ghosts[2].pos.to_tuple(),
-            #     "o": self.ghosts[3].pos.to_tuple()
-            # },
-            # "pellets": pacman.dist_nearest_pellets(self.grid, 10), # Numpy array of Position of pellets
-            # "fruit": Fruit.is_active, # Bool of whether fruit exist
-            # "level": self.level, # Int of level
-            # "score": self.pacman.score, # Int of current score
-            # "lives": self.pacman.lives, # Int of lives
-            # "phase": onehot(self.phase_keys[self.phase], self.phase_keys), # Int of phase key
-            "wall": pacman.check_wall(pacman.dir, self.grid)
-        }
+        ghosts = self.ghosts
+        # pos = pacman.pos.tile().to_tuple()
+        # tracker = self.pos_tracker[pos] if pos in self.pos_tracker.keys() else 0
+        
+        # removed tracker, check_wall, and pellets
+        # Max values for normalization
+        max_grid_x = 28
+        max_grid_y = 31
+        max_level = 255
+        max_score = 3_333_360
+        max_lives = 5
+        
+        # Define and normalize positions, one-hot directions
+        character_states = np.concatenate((
+            [pacman.pos.x / max_grid_x, pacman.pos.y / max_grid_y],  # Pacman position (normalized)
+            self.one_hot_dir[self.dir_keys[pacman.dir]] # Pacman dir (one-hot encoded)
+        ))
+        # for i in range(4):
+        #     character_states = np.concatenate((
+        #         character_states,
+        #         [ghosts[i].pos.x / max_grid_x, ghosts[i].pos.y / max_grid_y], # Ghosts position (normalized)
+        #         self.one_hot_dir[self.dir_keys[ghosts[i].dir]] # Ghosts dir (one-hot encoded)
+        #     ))
+        
+        # Create game state
+        self.game_state = character_states
+        '''np.concatenate((
+            character_states, 
+            [ # Define other state variables
+                self.level / max_level, # Level (int, normalized)
+                self.pacman.score / max_score, # Score (int, normalized)
+                self.pacman.lives / max_lives, # Lives (int, normalized)
+            ],
+            self.one_hot_fruit[0 if Fruit.is_active is None else 1].flatten(), # Fruit exists (bool, one-hot encoded)
+            self.one_hot_phase[self.phase_keys[self.phase]].flatten() # Phases (one-hot encoded)
+        ))'''
+        
+        # Create grid state
+        grid = self.grid
+        # x, y = pacman.pos.tile().to_tuple()
+        # if 0 <= x <= 27: # Check if grid indices are in range
+        #     grid[27 - x, y] = 'pcmn'
+        grid_state = [self.grid_keys[thing] for thing in grid.values()]
+        self.grid_state = np.reshape(grid_state, (28, 31))
+        return [self.grid_state, self.game_state]
+        
+        # self.state = {
+        #     "pacman": pacman.get_state(), # Position of pacman
+        #     "tracker": tracker,
+        #     # "ghosts": { # Dict of Position of ghosts
+        #     #     "r": self.ghosts[0].pos.to_tuple(),
+        #     #     "p": self.ghosts[1].pos.to_tuple(),
+        #     #     "b": self.ghosts[2].pos.to_tuple(),
+        #     #     "o": self.ghosts[3].pos.to_tuple()
+        #     # },
+        #     # "pellets": pacman.dist_nearest_pellets(self.grid, 10), # Numpy array of Position of pellets
+        #     # "fruit": Fruit.is_active, # Bool of whether fruit exist
+        #     # "level": self.level, # Int of level
+        #     # "score": self.pacman.score, # Int of current score
+        #     # "lives": self.pacman.lives, # Int of lives
+        #     # "phase": onehot(self.phase_keys[self.phase], self.phase_keys), # Int of phase key
+        #     "wall": pacman.check_wall(pacman.dir, self.grid)
+        # }
     
     def print_state(self):
         state = self.state
@@ -197,11 +255,12 @@ class PacManGame(gym.Env):
         print(f"Phase: {state['phase']}")
         print(f"Wall: {state['wall']}")
     
+    '''
     def flatten_state(self):
         flat_list = []
         
         def extract_values(value):
-            '''Recursively extract x, y from Position objects and handle various types.'''
+            ''Recursively extract x, y from Position objects and handle various types.''
             # if isinstance(value, Position):
             #     flat_list.extend([value.x, value.y])
             # if isinstance(value, (int, float, bool)): # Directly add numbers
@@ -222,6 +281,7 @@ class PacManGame(gym.Env):
             extract_values(val)
         # print("Length of flat: ", len(flat_list), flat_list)
         return np.array(flat_list, dtype=float) # Ensure consistent dtype for numeric processing
+    '''
     
     def get_high_score(self):
         '''Reads the latest high score from high_scores.txt'''
@@ -438,7 +498,7 @@ class PacManGame(gym.Env):
                 if self.do_render:
                     Sound.play_waka(True) # Play sound
                 pacman.score += 10
-                reward += 30
+                # reward += 30
             if grid_value == 'pdot':
                 phase = 'f' # Change phase to frightened mode
                 Ghost.scared_seconds = 0
@@ -521,6 +581,7 @@ class PacManGame(gym.Env):
         return reward
     
     def step(self, action=None, prev_action=None, prev_pos=None):
+        # sourcery skip: use-named-expression
         '''Each frame, for each life, for each level, for each game'''
         # Unpack variables
         pacman = self.pacman
@@ -608,32 +669,49 @@ class PacManGame(gym.Env):
             # pacman.prev_dist_nearest_pellet = next_dist_nearest_pellet
             # pacman.prev_dist_nearest_ghost = next_dist_nearest_ghost
             # pacman.prev_dist_nearest_fruit = next_dist_nearest_fruit
-            
-            reversed = pacman.has_reversed(action, prev_action)
-            if reversed:
-                reward -= 5
-            else:
+            target = Position(21,23)
+            # if pacman.pos.equals(goal):
+            #     reward += 10 # Huge reward for reaching the goal
+            # reward += -pacman.pos.distance(goal)
+            dist = self.network.manhattan(pacman.pos.tile(), target)
+            # print(dist)
+            # reward += (pacman.prev_dist - dist) * 0.5
+            if dist < pacman.prev_dist:
+                reward += 1
+            if dist < 2:
                 reward += 10
-            reward += (2 - self.pos_tracker[pos]) * 3
-            print("T", self.pos_tracker[pos], f"{reward:4d}", "R" if reversed else '')
+            else:
+                reward -= 1
+            pacman.prev_dist = dist
+            
+            # reversed = pacman.has_reversed(action, prev_action)
+            # if reversed:
+            #     reward -= 0.5
+            # else:
+            #     reward += 0.2
+            # reward += (2 - self.pos_tracker[pos]) * 0.05
+            
+            
+            # print("T", self.pos_tracker[pos], f"{reward:4d}", "R" if reversed else '')
             
             
             # Return network variables
-            self.update_state()
             # self.print_state()
             # print("Score:", pacman.score, "| Action:", action, "| Reward:", reward)
             # print(self.flatten_state())
             # print("R", reward)
-            return self.flatten_state(), reward, done
+            return self.update_state(), reward, done
         return done
     
     def run_begin_game(self):
         '''Beginning variables for the whole game'''
         
         self.level = 1
+        # 13.0
         self.pacman = Pacman(13.0 / self.fps) # Tiles per second / Frames per second = Tiles per frame
         self.speed_pacman = self.pacman.base_speed * 0.80
         self.speed_ghosts = self.speed_pacman * 0.80 # frightened ghosts are two-thirds of their normal speed
+        Fruit.q = Queue()
         
         # Show the main menu
         if self.do_render:
@@ -680,6 +758,7 @@ class PacManGame(gym.Env):
         pacman.prev_dist_nearest_pellet = 1
         pacman.prev_dist_nearest_ghost = 5
         pacman.prev_dist_nearest_fruit = 0
+        pacman.prev_dist = 20
         
         # Set new variables
         self.prev_lives = pacman.lives
@@ -727,5 +806,4 @@ class PacManGame(gym.Env):
     
     def reset(self):
         self.run_begin_game()
-        self.update_state()
-        return self.flatten_state()
+        return self.update_state()

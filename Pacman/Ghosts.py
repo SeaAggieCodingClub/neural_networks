@@ -16,7 +16,7 @@ decision_tiles = { # Tiles in which there is an intersection (X val : [Y vals])
     18:[5, 14, 17, 20, 23],
     21:[1, 5, 8, 14, 20, 23],
     24:[26],
-    27:[5]
+    26:[5]
 }
 
 special_tiles = { # Decision tiles where there is an extra movement restriction

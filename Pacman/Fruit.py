@@ -45,6 +45,7 @@ class Fruit:
         self.image = sprites.get_image(self.id)
         
         Fruit.is_active = False
+        q = Queue()
     
     def get_id(self, level):  # sourcery skip: assign-if-exp, reintroduce-else
         '''Returns the fruit id based on the current level'''

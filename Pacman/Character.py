@@ -66,7 +66,7 @@ class Character(pygame.sprite.Sprite):
         if pos.x < warp_tunnels['right']: # If grid indices are out of range to the right
                 self.pos.x = warp_tunnels['left'] # Teleport to other side
         elif pos.x > warp_tunnels['left']:  # If grid indices are out of range to the left
-            self.pos.x = warp_tunnels['right'] # Teleport to other side`
+            self.pos.x = warp_tunnels['right'] # Teleport to other side
     
     def check_wall(self, dir, grid, distance=0.55):
         '''Returns whether there is a wall ahead of the character'''

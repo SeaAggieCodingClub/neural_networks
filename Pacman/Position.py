@@ -18,14 +18,19 @@ class Position:
     def add(self, pos):
         '''Adds this position with another given position'''
         
-        x = self.pos.x + pos.x
-        y = self.pos.x + pos.x
+        x = self.x + pos.x
+        y = self.y + pos.y
         return Position(x, y)
     
     def distance(self, pos):
         '''Returns the pythagorean distance to the given position'''
         
         return math.sqrt((self.x - pos.x) ** 2 + (self.y - pos.y) ** 2)
+    
+    def manhattan(self, pos):
+        '''Returns the manhattan distance to the given position'''
+        
+        return abs(self.x - pos.x) + abs(self.y - pos.y)
     
     def equals(self, pos):
         '''Returns whether this position equals the given position'''
