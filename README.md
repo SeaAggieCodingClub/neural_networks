@@ -1,3 +1,3 @@
 # neural_links_gage
 snake - Caleb, Anthony, Rylan
-pacman - Diego, Shyown, Daniel, Chris, GAGE
+pacman - Diego, Shyown, Daniel, Chris, GAGE, Krish
